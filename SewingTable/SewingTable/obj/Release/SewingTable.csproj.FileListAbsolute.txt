@@ -1,0 +1,3 @@
+C:\Users\Lisa\Documents\SharpDevelop Projects\SewingTable\SewingTable\bin\Release\SewingTable.dll
+C:\Users\Lisa\Documents\SharpDevelop Projects\SewingTable\SewingTable\obj\Release\SewingTable.csprojResolveAssemblyReference.cache
+C:\Users\Lisa\Documents\SharpDevelop Projects\SewingTable\SewingTable\obj\Release\SewingTable.dll

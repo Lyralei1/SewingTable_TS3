@@ -1,0 +1,7 @@
+C:\Users\Lisa\Documents\SharpDevelop Projects\GlobalDLLImporterTest\GlobalDLLImporterTest\bin\Debug\GlobalDLLImporterTest.dll
+C:\Users\Lisa\Documents\SharpDevelop Projects\GlobalDLLImporterTest\GlobalDLLImporterTest\bin\Debug\GlobalDLLImporterTest.pdb
+C:\Users\Lisa\Documents\SharpDevelop Projects\GlobalDLLImporterTest\GlobalDLLImporterTest\bin\Debug\ScriptCore.dll
+C:\Users\Lisa\Documents\SharpDevelop Projects\GlobalDLLImporterTest\GlobalDLLImporterTest\bin\Debug\SimIFace.dll
+C:\Users\Lisa\Documents\SharpDevelop Projects\GlobalDLLImporterTest\GlobalDLLImporterTest\obj\Debug\GlobalDLLImporterTest.csprojResolveAssemblyReference.cache
+C:\Users\Lisa\Documents\SharpDevelop Projects\GlobalDLLImporterTest\GlobalDLLImporterTest\obj\Debug\GlobalDLLImporterTest.dll
+C:\Users\Lisa\Documents\SharpDevelop Projects\GlobalDLLImporterTest\GlobalDLLImporterTest\obj\Debug\GlobalDLLImporterTest.pdb

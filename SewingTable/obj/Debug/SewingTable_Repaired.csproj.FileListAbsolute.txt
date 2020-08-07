@@ -1,0 +1,5 @@
+C:\Users\Lisa\Documents\SharpDevelop Projects\SewingTable_Repaired\SewingTable_Repaired\bin\Debug\SewingTable_Repaired.dll
+C:\Users\Lisa\Documents\SharpDevelop Projects\SewingTable_Repaired\SewingTable_Repaired\bin\Debug\SewingTable_Repaired.pdb
+C:\Users\Lisa\Documents\SharpDevelop Projects\SewingTable_Repaired\SewingTable_Repaired\obj\Debug\SewingTable_Repaired.csprojResolveAssemblyReference.cache
+C:\Users\Lisa\Documents\SharpDevelop Projects\SewingTable_Repaired\SewingTable_Repaired\obj\Debug\SewingTable_Repaired.dll
+C:\Users\Lisa\Documents\SharpDevelop Projects\SewingTable_Repaired\SewingTable_Repaired\obj\Debug\SewingTable_Repaired.pdb
