@@ -12,9 +12,8 @@ When working on a fix/addition, make sure to create a new branch called 'userNam
 
 Pull requests will always be checked by me :)
 
-
-
-
-
-
-
+# Setup
+So far, the project should be set up fine. However, there are a few things to keep in mind:
+- We have 2 different C# solutions inside one whole project. One is the 'SewingTable', the other 'GlobalSewingTables' (also refered to as 'GlobalOptionsSewingTable'). GlobalSewingTables refers to what needs to be handled by the game on load/pre-load and globally. The 'SewingTable' project refers to what the object itself needs to do. 
+- Because the "SewingTable' project is dependant on the code for 'GlobalSewingTables', every change we make to 'GlobalSewingTable' we need to refresh the reference dll in the 'Sewingtable' project. 
+- Because of the pathing of each project is different, it might mean you'll need to re-add the 'GlobalSewingtable' dll in the references.
