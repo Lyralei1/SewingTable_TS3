@@ -1,6 +1,0 @@
-C:\Users\Lisa\Documents\SharpDevelop Projects\SewingTable\newSewingTableTest\obj\Debug\newSewingTableTest.csprojResolveAssemblyReference.cache
-C:\Users\Lisa\Documents\SharpDevelop Projects\SewingTable\newSewingTableTest\bin\Debug\newSewingTableTest.dll
-C:\Users\Lisa\Documents\SharpDevelop Projects\SewingTable\newSewingTableTest\bin\Debug\newSewingTableTest.pdb
-C:\Users\Lisa\Documents\SharpDevelop Projects\SewingTable\newSewingTableTest\obj\Debug\newSewingTableTest.dll
-C:\Users\Lisa\Documents\SharpDevelop Projects\SewingTable\newSewingTableTest\obj\Debug\newSewingTableTest.pdb
-C:\Users\Lisa\Documents\SharpDevelop Projects\SewingTable\newSewingTableTest\bin\Debug\0x78CF6CF5304D0C4F_ScriptCore.dll
