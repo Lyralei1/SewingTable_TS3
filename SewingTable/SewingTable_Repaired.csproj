@@ -100,7 +100,7 @@
       <Private>False</Private>
     </Reference>
     <Reference Include="GlobalOptionsSewingTable">
-      <HintPath>..\..\GlobalDLLImporterTest\GlobalDLLImporterTest\bin\Release\GlobalOptionsSewingTable.dll</HintPath>
+      <HintPath>..\GlobalsSewingTable\bin\Release\GlobalOptionsSewingTable.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>
