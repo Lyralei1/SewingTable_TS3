@@ -58,7 +58,7 @@ namespace Sims3.Gameplay.Objects.Lyralei
 		public static int mCurrentSkillLevel = 0;
 		
 		public static List<GameObject> mCreatedObjects = new List<GameObject>();
-//
+
         public static float Progress;
         
        	public static SewingTable target2;
@@ -403,20 +403,18 @@ namespace Sims3.Gameplay.Objects.Lyralei
 				
 				base.SetActor("sewingtable_table", base.Target);
 				base.SetActor("chairDining", base.Actor.Posture.Container);
+				
 				base.EnterState("x", "Enter");
 				base.AnimateSim("Loop");
+				bool GainSkillOnLoop = DoLoop(ExitReason.Default, LoopInfinite, null, 10f);
 				
-				bool GainSkillOnLoop = DoLoop(ExitReason.Default, LoopInfinite, null);
-				
-				if(RandomUtil.RandomChance(30f))
+				print("Magically doing this");
+				if(Pattern.mSavedCachedObjectsForLoopList.Count > 0)
 				{
-					Pattern randomPattern = Pattern.DiscoverPatternForGlobalObjects(base.Actor);
-					if(randomPattern != null)
-					{
-						base.Actor.Inventory.TryToAdd(randomPattern);
-						base.Actor.ShowTNSIfSelectable(Localization.LocalizeString("Lyralei/Localized/BrowseWebForPatternsSuccess:InteractionName", new object[0]), StyledNotification.NotificationStyle.kSimTalking);
-					}	
+					Pattern.CreateCachedPatterns(base.Actor);
+					Pattern.mSavedCachedObjectsForLoopList.Clear();
 				}
+				print("and did it");
 				
 				base.AnimateSim("Exit");
 				sewingSkill.StopSkillGain();
@@ -424,25 +422,57 @@ namespace Sims3.Gameplay.Objects.Lyralei
 				return GainSkillOnLoop;
 			}
 			
+			public int ShouldIReRunCount = 0;
+
 			public void LoopInfinite(StateMachineClient smc, LoopData loopData)
             {
-
+				if(RandomUtil.RandomChance(5f))
+				{
+					print("Yay!");
+					
+					// Cache patterns we want to discover
+					ResourceKey cachedPattern = Pattern.GetUnregisteredpattern(base.Actor, true);
+					print("Pattern was cached");
+					
+					//ShouldIReRunCount++;
+					
+//					if(cachedPattern != null && Pattern.mSavedCachedObjectsForLoopList.Count > 0)
+//					{
+//						if(RandomUtil.RandomChance01(0.3f))
+//						{
+//						}
+//					}
+				}
+				
 				if(Actor.HasExitReason(ExitReason.UserCanceled) || (Actor.HasExitReason(ExitReason.MoodFailure)) || (Actor.HasExitReason(ExitReason.Canceled)))
 				{
 				   	base.Actor.AddExitReason(ExitReason.UserCanceled);
 				   	base.Actor.AddExitReason(ExitReason.MoodFailure);
-				   	
-//				   	if(!Actor.Household.SharedFamilyInventory.Inventory.TryToAdd(DiscoverPattern()))
-//					{
-//						DiscoverPattern().Destroy();
-//					}
-//				   	Actor.ShowTNSIfSelectable("Pattern has been moved to my family's inventory!", StyledNotification.NotificationStyle.kSimTalking);
 				}
 				
             }
 			
+						
+			public void AddingPatterns()
+			{
+//				for(int i = 0; i < howManyTimes; i++)
+//				{
+					print("Got here!");
+					Pattern randomPattern = Pattern.DiscoverPatternWithSkillsSewingTable(Target, Actor);
+					Sims3.SimIFace.Simulator.AddObject(new OneShotFunctionTask(new Function(AddingPatterns)));
+					
+					print("Made pattern");
+					if(randomPattern != null)
+					{
+						Actor.Inventory.TryToAdd(randomPattern);
+						Actor.ShowTNSIfSelectable(Localization.LocalizeString("Lyralei/Localized/BrowseWebForPatternsSuccess:InteractionName", new object[0]), StyledNotification.NotificationStyle.kSimTalking);
+					}
+				//}
+			}
+			
 			public override void Cleanup()
             {
+				
 	           	if (mFabric != null)
 	           	{
 	           		if (mFabric != null)
@@ -455,7 +485,7 @@ namespace Sims3.Gameplay.Objects.Lyralei
 	           	base.Cleanup();
             }
 		}
-			
+		
 		public class Workbench_OpenInventory : ImmediateInteraction<Sim, SewingTable>
 		{
 			[DoesntRequireTuning]

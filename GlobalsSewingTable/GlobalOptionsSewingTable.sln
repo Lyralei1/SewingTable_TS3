@@ -2,7 +2,7 @@
 Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
 # SharpDevelop 5.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GlobalOptionsSewingTable", "GlobalDLLImporterTest\GlobalOptionsSewingTable.csproj", "{6B463D5D-913E-4137-B482-07A03EC78BE6}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GlobalOptionsSewingTable", "GlobalOptionsSewingTable.csproj", "{6B463D5D-913E-4137-B482-07A03EC78BE6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

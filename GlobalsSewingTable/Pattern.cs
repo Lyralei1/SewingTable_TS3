@@ -20,6 +20,10 @@ namespace Sims3.Gameplay.Objects.Lyralei
 {
 	public class Pattern : GameObject, IGameObject, IExportableContent
 	{
+				//Mainly used for the practise interaction
+		public static List<ResourceKey> mSavedCachedObjectsForLoopList = new List<ResourceKey>();
+		public static List<ResourceKey> mStoredPatternsKeySettingsList = new List<ResourceKey>();
+		
 		public class PatternNameComponent : NameComponent
 		{
 			public PatternNameComponent()
@@ -193,17 +197,18 @@ namespace Sims3.Gameplay.Objects.Lyralei
 			}
 			while(true);
 		   	  
-   			for(int i = 0; i < ObjectLoader.sewableSettings.Count; i++)
-   			{
-   				if(ObjectLoader.sewableSettings[i].key == getPattern)
+			if(mStoredPatternsKeySettingsList.Contains(getPattern))
    				{
    					try
    					{
-       					mPatternInfoInit.resKeyPattern 				= getPattern;
-       					mPatternInfoInit.fabricsNeeded 				= ObjectLoader.sewableSettings[i].typeFabric;
-       					mPatternInfoInit.IsMagic	   				= ObjectLoader.sewableSettings[i].isMagicProject;
-       					mPatternInfoInit.amountOfFabricToRemove	    = ObjectLoader.sewableSettings[i].amountRemoveFabric;
-       					mPatternInfoInit.mSkilllevel 				= 0;
+   						for(int i = 0; i < ObjectLoader.sewableSettings.Count; i++)
+   						{
+	       					mPatternInfoInit.resKeyPattern 				= getPattern;
+	       					mPatternInfoInit.fabricsNeeded 				= ObjectLoader.sewableSettings[i].typeFabric;
+	       					mPatternInfoInit.IsMagic	   				= ObjectLoader.sewableSettings[i].isMagicProject;
+	       					mPatternInfoInit.amountOfFabricToRemove	    = ObjectLoader.sewableSettings[i].amountRemoveFabric;
+	       					mPatternInfoInit.mSkilllevel 				= 0;
+   						}
        					// Pattern OBJD key.
        					ResourceKey reskey1 = new ResourceKey(0x19D4F5930F26B2D8, 0x319E4F1D, 0x00000000);
        					Pattern.PatternObjectInitParams initData = new Pattern.PatternObjectInitParams(mPatternInfoInit.fabricsNeeded, mPatternInfoInit.IsMagic, mPatternInfoInit.amountOfFabricToRemove, mPatternInfoInit.mSkilllevel, mPatternInfoInit.resKeyPattern);
@@ -241,8 +246,93 @@ namespace Sims3.Gameplay.Objects.Lyralei
    					}
    				}
 //			 }
-   		  }
+   		  
 	   	  return null;
+	   }
+	   
+	   public static ResourceKey GetUnregisteredpattern(Sim actor, bool NeedsToCache)
+	   {
+	   		ResourceKey getPattern 				= new ResourceKey();
+			SimDescription actorDesc			= actor.SimDescription;
+			
+			// Checks whether the current actor already knows the pattern chosen.
+			do 
+			{
+				getPattern = GetRandomKeyWithSKills(actor);
+				if(!GlobalOptionsSewingTable.retrieveData.mDiscoveredObjects.ContainsValue(getPattern) && !GlobalOptionsSewingTable.retrieveData.mDiscoveredObjects.ContainsKey(actorDesc))
+				{
+					// break the loop if a not-known pattern has been found. 
+					break;
+				}
+			}
+			while(true);
+			
+			// if we need to cache it (See SewingTable > practise and BrowseForDIY) add it to the caching list.
+			if(NeedsToCache)
+			{
+				mSavedCachedObjectsForLoopList.Add(getPattern);
+				return getPattern;
+			}
+			else {
+				return getPattern;
+			}
+	   }
+	   
+	   public static void CreateCachedPatterns(Sim actor)
+	   {
+	   		PatternInfo mPatternInfoInit 		= new PatternInfo();
+	   		GlobalOptionsSewingTable.print(mSavedCachedObjectsForLoopList.ToString());
+	   		
+	   		foreach(ResourceKey reskey in mSavedCachedObjectsForLoopList)
+	   		{
+				if(mStoredPatternsKeySettingsList.Contains(reskey))
+				{
+	   					try
+	   					{
+	   						for(int i = 0; i < ObjectLoader.sewableSettings.Count; i++)
+	   						{
+		       					mPatternInfoInit.resKeyPattern 				= reskey;
+		       					mPatternInfoInit.fabricsNeeded 				= ObjectLoader.sewableSettings[i].typeFabric;
+		       					mPatternInfoInit.IsMagic	   				= ObjectLoader.sewableSettings[i].isMagicProject;
+		       					mPatternInfoInit.amountOfFabricToRemove	    = ObjectLoader.sewableSettings[i].amountRemoveFabric;
+		       					mPatternInfoInit.mSkilllevel 				= 0;
+	   						}
+	       					// Pattern OBJD key.
+	       					ResourceKey reskey1 = new ResourceKey(0x19D4F5930F26B2D8, 0x319E4F1D, 0x00000000);
+	       					Pattern.PatternObjectInitParams initData = new Pattern.PatternObjectInitParams(mPatternInfoInit.fabricsNeeded, mPatternInfoInit.IsMagic, mPatternInfoInit.amountOfFabricToRemove, mPatternInfoInit.mSkilllevel, mPatternInfoInit.resKeyPattern);
+	       					Pattern pattern = (Pattern)GlobalFunctions.CreateObjectOutOfWorld(reskey1, null, initData);
+	       					
+	       					if(pattern != null)
+	       					{
+	       						IGameObject getname = (GameObject)GlobalFunctions.CreateObjectOutOfWorld(mPatternInfoInit.resKeyPattern, null, initData);
+	       						if(getname != null)
+	       						{
+	       							SimDescription desc = actor.SimDescription;
+	       							SewingSkill.AddItemsToDiscoveredList(desc, mPatternInfoInit.resKeyPattern);
+	       							
+	       							// Currently uses the pattern object's name. We need to concatinate the sewable's name here as well. Since EA never made a function to get the name direction from the resource key, we need to do this.
+			       					mPatternInfoInit.Name = pattern.GetLocalizedName() + ":" + getname.GetLocalizedName();
+			       					pattern.NameComponent.SetName(pattern.GetLocalizedName() + ": " + getname.GetLocalizedName());
+			       					// Now we finally got the name and can destroy the object.
+			       					getname.Destroy();
+	       						}
+	       						actor.Inventory.TryToAdd(pattern);
+	       					}
+	       					else 
+	       					{
+	       						GlobalOptionsSewingTable.print("Lyralei's Sewing table: \n \n The pattern doesn't exist! Did you delete things from the sewing table .package? Else, contact Lyralei.");
+	       						
+	       					}
+	   					}
+	   					catch(Exception ex2)
+	   					{
+	   						
+	   						GlobalOptionsSewingTable.print("Lyralei's Sewing table: \n \n REPORT THIS TO LYRALEI: "  + ex2.ToString());
+	   						
+	   					}
+	   			}
+	   		}
+	   		
 	   }
 
 	   // Only use if it's an interaction. 
@@ -251,6 +341,8 @@ namespace Sims3.Gameplay.Objects.Lyralei
 			PatternInfo mPatternInfoInit 		= new PatternInfo();
 			ResourceKey getPattern 				= new ResourceKey();
 			SimDescription actorDesc			= actor.SimDescription;
+			
+			//GetUnregisteredpattern(actor, false);
 			
 			do 
 			{
@@ -359,15 +451,17 @@ namespace Sims3.Gameplay.Objects.Lyralei
 			ResourceKey getPattern 						= new ResourceKey();
 			SimDescription actorDesc					= actor.SimDescription;
 			
-			do 
-			{
-				  getPattern = GetRandomKeyWithSKills(actor);
-				  if(!GlobalOptionsSewingTable.retrieveData.mDiscoveredObjects.ContainsKey(actorDesc) && !GlobalOptionsSewingTable.retrieveData.mDiscoveredObjects.ContainsValue(getPattern))
-				  {
-				  	break;
-				  }
-			}
-			while(true);
+			getPattern = GetUnregisteredpattern(actor, false);
+			
+//			do 
+//			{
+//				  getPattern = GetRandomKeyWithSKills(actor);
+//				  if(!GlobalOptionsSewingTable.retrieveData.mDiscoveredObjects.ContainsKey(actorDesc) && !GlobalOptionsSewingTable.retrieveData.mDiscoveredObjects.ContainsValue(getPattern))
+//				  {
+//				  	break;
+//				  }
+//			}
+//			while(true);
 			
 			ResourceKey emptyRes = new ResourceKey(0uL, 0u, 0u);
 			if(getPattern != emptyRes)
@@ -421,6 +515,7 @@ namespace Sims3.Gameplay.Objects.Lyralei
 			}
 			return null;
 		}
+       
        	
        	public static void DiscoverAllPatterns(Sim actor)
        	{

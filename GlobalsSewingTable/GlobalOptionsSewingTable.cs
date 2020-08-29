@@ -274,6 +274,13 @@ namespace Lyralei
 				AddInteractions(computer);
 			}
         	
+        	// Save our loaded key to make discovery quicker. Rather than always looping through it. 
+        	for(int i = 0; i < ObjectLoader.sewableSettings.Count; i++)
+   			{
+        		Pattern.mStoredPatternsKeySettingsList.Add(ObjectLoader.sewableSettings[i].key);
+        	}
+        	
+        	
 		   	mPatternClubAlarm = AlarmManager.Global.AddAlarmDay(1f, DaysOfTheWeek.Thursday, GlobalOptionsSewingTable.SendPatterns, "Mailbox:  Pattern club", AlarmType.NeverPersisted, null);
         	EventTracker.AddListener(EventTypeId.kBoughtObject, new
 			ProcessEventDelegate(OnObjectChanged));
