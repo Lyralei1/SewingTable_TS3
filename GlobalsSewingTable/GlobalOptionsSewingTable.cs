@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Xml;
+using Sims3.Gameplay.Abstracts;
 using Sims3.Gameplay.Actors;
 using Sims3.Gameplay.Autonomy;
 using Sims3.Gameplay.CAS;
+using Sims3.Gameplay.Controllers;
 using Sims3.Gameplay.Core;
 using Sims3.Gameplay.EventSystem;
 using Sims3.Gameplay.Lyralei;
@@ -13,6 +16,7 @@ using Sims3.Gameplay.Objects.Lyralei;
 using Sims3.Gameplay.Objects.RabbitHoles;
 using Sims3.Gameplay.Skills;
 using Sims3.Gameplay.Skills.Lyralei;
+using Sims3.Gameplay.Socializing;
 using Sims3.Gameplay.Utilities;
 using Sims3.SimIFace;
 using Sims3.UI;
@@ -56,23 +60,152 @@ namespace Lyralei
 
             LoadSaveManager.ObjectGroupsPreLoad += new ObjectGroupsPreLoadHandler(GlobalOptionsSewingTable.OnPreload);
 
-			if (!GlobalOptionsSewingTable.alreadyParsed)
-			{
-				LoadSaveManager.ObjectGroupsPreLoad += new ObjectGroupsPreLoadHandler(GlobalOptionsSewingTable.ParseBooks);
-			}
-			// LoadSaveManager.ObjectGroupsPostLoad += new ObjectGroupsPostLoadHandler(Pattern.OnPostWorldLoad);
-			
-			alreadyParsed = true;
+            if (!GlobalOptionsSewingTable.alreadyParsed)
+            {
+                LoadSaveManager.ObjectGroupsPreLoad += new ObjectGroupsPreLoadHandler(GlobalOptionsSewingTable.ParseBooks);
+            }
+            alreadyParsed = true;
             World.OnWorldLoadFinishedEventHandler += new EventHandler(OnWorldLoadFinished);
             World.OnWorldQuitEventHandler += new EventHandler(OnWorldQuit);
+            World.OnStartupAppEventHandler += new EventHandler(OnStartupApp);
+        }
+
+        public static void OnStartupApp(object sender, EventArgs e)
+        {
+            try
+            {
+                LoadSocialData("SewingSkillsSpecialsSocialData");
+                //LoadSocializingActionAvailability("SewingSkillsSpecialsSocializingData");
+                print("SewingSkill data parsed?");
+            }
+            catch (Exception ex)
+            {
+                print("Load social data: " + ex.ToString());
+            }
+        }
+
+        public static void LoadSocialData(string spreadsheet)
+        {
+            XmlDocument root = Simulator.LoadXML(spreadsheet);
+            bool isEp5Installed = GameUtils.IsInstalled(ProductVersion.EP5);
+            if (spreadsheet != null)
+            {
+                print("is NOT null");
+                Sims3.Gameplay.Socializing.XmlElementLookup lookup = new Sims3.Gameplay.Socializing.XmlElementLookup(root);
+                List<XmlElement> list = lookup["Action"];
+                foreach (XmlElement element in list)
+                {
+                    CommodityTypes types;
+                    Sims3.Gameplay.Socializing.XmlElementLookup table = new Sims3.Gameplay.Socializing.XmlElementLookup(element);
+                    if(!ParserFunctions.TryParseEnum<CommodityTypes>(element.GetAttribute("com"), out types, CommodityTypes.Undefined))
+                    {
+                        print("Failed to parse");
+                        return;
+                    }
+
+                    ActionData data = new ActionData(element.GetAttribute("key"), types, ProductVersion.BaseGame, table, isEp5Installed);
+                    ActionData.Add(data);
+                    //ActionData.sData.Add("TalkAboutSewingSkill", data);
+
+                    print("Data parsed");
+                    ActionData actiondata = ActionData.Get("TalkAboutSewingSkill");
+                    if(actiondata != null)
+                    {
+                        print("I guess? " + actiondata.ToString());
+                    }
+                }
+
+                //foreach(KeyValuePair<string, ActionData> item in ActionData.sData)
+                //{
+                //    print("item in sData: " + item.Key);
+                //    print("item in Value: " + item.Value);
+                //}
+                
+
+
+                //list = lookup["ProcTest"];
+                //XmlElement xmlElement;
+
+                //if (list.Count > 0)
+                //{
+                //    xmlElement = list[0];
+                //    string attribute2 = xmlElement.GetAttribute("key");
+                //    if (!string.IsNullOrEmpty(attribute2))
+                //    {
+                //        print("Attribute: " + attribute2.ToString());
+                //        FindMethod(attribute2);
+                //    }
+                //}
+                //else
+                //{
+                //    print("Could not find ProcTest");
+                //}
+            }
+        }
+
+        public static MethodInfo FindMethod(string methodName)
+        {
+            print("Method name: " + methodName.ToString());
+            if (methodName.Contains(","))
+            {
+                print("method name contains , ");
+                string[] array = methodName.Split(',');
+                print("method name split! :)" + array.ToString());
+
+                string typeName = array[0] + "," + array[1];
+                print("Typename: " + typeName.ToString());
+
+                Type type = Type.GetType(typeName, true);
+                print("Type: " + type.ToString());
+
+                string text = array[2];
+                text = text.Replace(" ", "");
+                print("Going to return this: " + text.ToString());
+
+                return type.GetMethod(text);
+            }
+            Type typeFromHandle = typeof(SocialTest);
+            return typeFromHandle.GetMethod(methodName);
+        }
+
+
+        public static void LoadSocializingActionAvailability(string resourceName)
+        {
+            XmlDbData xmlDbData = XmlDbData.ReadData(resourceName);
+            if (xmlDbData != null)
+            {
+                try
+                {
+                    if (xmlDbData.Tables.ContainsKey("SAA"))
+                    {
+                        SocialManager.ParseStcActionAvailability(xmlDbData);
+                    }
+                    if (xmlDbData.Tables.ContainsKey("TAA"))
+                    {
+                        SocialManager.ParseActiveTopicActionAvailability(xmlDbData);
+                    }
+                    if (xmlDbData.Tables.ContainsKey("ActionNames"))
+                    {
+                        SocialManager.ParseActionNames(xmlDbData);
+                    }
+                    if (xmlDbData.Tables.ContainsKey("ActionTopics"))
+                    {
+                        SocialManager.ParseActiveTopic(xmlDbData);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    print("LoadSocializingActionAvailability: " + ex.ToString());
+                }
+            }
         }
 
         static void OnPreload()
         {
-        	try 
+            try 
         	{
         		ObjectLoader.GetAllXMLSettingsForSewables();
-        	}
+            }
         	catch(Exception ex2)
         	{
              	print("There was a problem, couldn't get the sewables settings \n \n" + ex2.ToString());
@@ -260,36 +393,47 @@ namespace Lyralei
             }
             catch (Exception ex)
             {
-            	print("In Preload - caught issue");
+            	print("In Preload - caught issue" + ex.ToString());
                 return;
             }
 	    }
         public static Dictionary<string, BookSkillData> BookSkillDataListLyralei = new Dictionary<string, BookSkillData>();
-        
+
         public static void OnWorldLoadFinished(object sender, EventArgs e)
-	    {
-    		ObjectLoader.GetAllSimulationObjectKeysForDialogue();
-        	foreach (Computer computer in Sims3.Gameplay.Queries.GetObjects<Computer>())
-			{
-				AddInteractions(computer);
-			}
-        	
-        	// Save our loaded key to make discovery quicker. Rather than always looping through it. 
-        	for(int i = 0; i < ObjectLoader.sewableSettings.Count; i++)
-   			{
-        		Pattern.mStoredPatternsKeySettingsList.Add(ObjectLoader.sewableSettings[i].key);
-        	}
-        	
-        	
-		   	mPatternClubAlarm = AlarmManager.Global.AddAlarmDay(1f, DaysOfTheWeek.Thursday, GlobalOptionsSewingTable.SendPatterns, "Mailbox:  Pattern club", AlarmType.NeverPersisted, null);
-        	EventTracker.AddListener(EventTypeId.kBoughtObject, new
-			ProcessEventDelegate(OnObjectChanged));
-			EventTracker.AddListener(EventTypeId.kInventoryObjectAdded, new
-			ProcessEventDelegate(OnObjectChanged));
-			EventTracker.AddListener(EventTypeId.kObjectStateChanged, new
-			ProcessEventDelegate(OnObjectChanged));
+        {
+            SimpleMessageDialog.Show("Lyralei's Sewing Table:", "START");
+            ObjectLoader.GetAllSimulationObjectKeysForDialogue();
+
+            //if (Household.ActiveHousehold != null)
+            //{
+            //    Sim[] objects = Sims3.Gameplay.Queries.GetObjects<Sim>();
+            //    for (int i = 0; i < objects.Length; i++)
+            //    {
+            //            AddInteractionsSims(objects[i]);
+            //    }
+            //    EventTracker.AddListener(EventTypeId.kSimInstantiated, OnSimInstantiated);
+            //}
+            //else
+            //{
+            //    EventTracker.AddListener(EventTypeId.kEventSimSelected, OnSimSelected);
+            //}
+            foreach (Computer computer in Sims3.Gameplay.Queries.GetObjects<Computer>())
+            {
+                AddInteractionsComputer(computer);
+            }
+
+            // Save/cache our loaded key to make discovery quicker. Rather than always looping through it. 
+            for (int i = 0; i < ObjectLoader.sewableSettings.Count; i++)
+            {
+                Pattern.mStoredPatternsKeySettingsList.Add(ObjectLoader.sewableSettings[i].key);
+            }
+
+            mPatternClubAlarm = AlarmManager.Global.AddAlarmDay(1f, DaysOfTheWeek.Thursday, GlobalOptionsSewingTable.SendPatterns, "Mailbox:  Pattern club", AlarmType.NeverPersisted, null);
+            EventTracker.AddListener(EventTypeId.kBoughtObject, new ProcessEventDelegate(OnObjectChanged));
+            EventTracker.AddListener(EventTypeId.kInventoryObjectAdded, new ProcessEventDelegate(OnObjectChanged));
+            EventTracker.AddListener(EventTypeId.kObjectStateChanged, new ProcessEventDelegate(OnObjectChanged));
         }
-        
+
         public static void OnWorldQuit(object sender, EventArgs e)
         {
         	AlarmManager.Global.RemoveAlarm(mPatternClubAlarm);
@@ -347,8 +491,7 @@ namespace Lyralei
 			}
 		}
         
-        
-		private static void AddInteractions(Computer computer)
+		private static void AddInteractionsComputer(Computer computer)
 		{
 			foreach (InteractionObjectPair interaction in computer.Interactions)
 			{
@@ -357,28 +500,117 @@ namespace Lyralei
 					return;
 				}
 			}
-			computer.AddInteraction(BrowseSewingDIY.Singleton);
+            computer.AddInteraction(BrowseSewingDIY.Singleton);
 			computer.AddInteraction(JoinPatternClub.Singleton);
 			computer.AddInteraction(LeavePatternClub.Singleton);
-		}
-		
-		private static ListenerAction OnObjectChanged(Event e)
+            computer.AddInteraction(BlogAboutSewing.Singleton);
+        }
+
+        private static void AddInteractionsPhone(Phone phone)
+        {
+            foreach (InteractionObjectPair interaction in phone.Interactions)
+            {
+                if (interaction.InteractionDefinition.GetType() == GottaBlogAboutSewing.Singleton.GetType())
+                {
+                    return;
+                }
+            }
+            phone.AddInteraction(GottaBlogAboutSewing.Singleton);
+        }
+
+        public static void AddInteractionsSims(Sim sim)
+        {
+            if (sim.SimDescription.TeenOrAbove)
+            {
+                foreach (InteractionObjectPair pair in sim.Interactions)
+                {
+                    if (pair.InteractionDefinition.GetType() == TalkAboutSewing.Singleton.GetType())
+                    {
+                        return;
+                    }
+                }
+                //sim.AddInteraction(TalkAboutSewing.Singleton);
+            }
+        }
+
+        private static ListenerAction OnObjectChanged(Event e)
 		{
 			try
 			{
 				Computer computer = e.TargetObject as Computer;
 				if (computer != null)
 				{
-					AddInteractions(computer);
+					AddInteractionsComputer(computer);
 				}
-			}
-			catch (Exception)
+                Phone phone = e.TargetObject as Phone;
+                if (phone != null)
+                {
+                    AddInteractionsPhone(phone);
+                }
+            }
+			catch (Exception ex2)
 			{
+                print("ListenerAction exc: /n /n" + ex2.ToString());
 			}
 			return ListenerAction.Keep;
 		}
-	
-		public static void print(string text)
+
+        private static ListenerAction OnSimInstantiated(Event e)
+        {
+            try
+            {
+                Sim sim;
+                if ((sim = (e.TargetObject as Sim)) != null)
+                {
+                    AddInteractionsSims(sim);
+                    print("on sim instantiated");
+                }
+            }
+            catch (Exception)
+            {
+            }
+            // try
+            //{
+            //    print("listener 1");
+            //     Sim sim = e.TargetObject as Sim;
+            //      print("listener 2");
+            //      if (sim != null)
+            //       {
+            //           print("listener 3");
+            //            AddInteractionsSims(sim);
+            //         }
+            //Phone phone = e.TargetObject as Phone;
+            //if (phone != null)
+            // {
+            //     AddInteractionsPhone(phone);
+            // }
+
+            //   }
+            //    catch (Exception ex2)
+            //     {
+            //         print("ListenerAction exc: /n /n" + ex2.ToString());
+            //     }
+            return ListenerAction.Keep;
+        }
+
+        public static ListenerAction OnSimSelected(Event e)
+        {
+            if (Household.ActiveHousehold != null)
+            {
+                Sim[] objects = Sims3.Gameplay.Queries.GetObjects<Sim>();
+                for (int i = 0; i < objects.Length; i++)
+                {
+                    AddInteractionsSims(objects[i]);
+                    print("on sim selected");
+                }
+                EventTracker.AddListener(EventTypeId.kSimInstantiated, OnSimInstantiated);
+                return ListenerAction.Remove;
+            }
+            return ListenerAction.Keep;
+        }
+
+
+        public static void print(string text)
 		{
 			SimpleMessageDialog.Show("Lyralei's Sewing Table:", text);
 		}

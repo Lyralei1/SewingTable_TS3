@@ -192,7 +192,7 @@ namespace Sims3.Gameplay.Lyralei
 				{
 					HarderSewablesList.Add(hardestSewables[i]);
 				}
-			}	
+			}
 			
 			//Filter out our defined hardest MAGIC sewable objects
 			for (int i = 0; i < magicHardestSewables.Count; i++)
@@ -260,7 +260,10 @@ namespace Sims3.Gameplay.Lyralei
 				}
 			}
 		}
+		
 		public static List<sewableSetting> sewableSettings = new List<sewableSetting>();
+		
+		public static Dictionary<ResourceKey, sewableSetting> dictSettings = new Dictionary<ResourceKey, sewableSetting>();
 
 		public static void ReadSettingData(ResourceKey xmlKey)
 		{
@@ -285,10 +288,12 @@ namespace Sims3.Gameplay.Lyralei
             	if(currentLine == 1)
             	{
             		sewableSettings[currentEntry].key = ResourceKey.FromString(element);	
+            		
             		if(sewableSettings[currentEntry].key == empty)
             		{
             			GlobalOptionsSewingTable.print("Creator Debugger: \n Oops, seems like the OBJD key is incorrect or doesn't exist inside your package/game. Therefore, the mod can't find it! :/ What you entered was: " + sewableSettings[currentEntry].key.ToString() + "\n Make sure of the following: \n 1. Your OBJD Key is correct. \n 2. That, inside S3PE, you highlighted the OBJD and right+clicked and then used the 'Copy resourceKey' Function. And then pasted this inside 'XML_Lyralei_Settings_Sewables'. \n \n \n If all that fails, make sure to contact me (Lyralei at MTS or Greenplumbboblover at tumblr)");
             		}
+            		
             	}
             	if(currentLine == 2){
             		string[] fabrics = element.Split(',');
@@ -349,6 +354,7 @@ namespace Sims3.Gameplay.Lyralei
             			string strInt = element.Replace("amountOfFabricToRemove=", "");
             			int ToInt = Convert.ToInt16(strInt);
             			sewableSettings[currentEntry].amountRemoveFabric = ToInt;
+            			dictSettings.Add(sewableSettings[currentEntry].key, sewableSettings[currentEntry]);
             		}
             	}
             	currentLine++;

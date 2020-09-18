@@ -265,7 +265,8 @@ namespace Sims3.Gameplay.Objects.Lyralei
             		{
             			mObjectChosenGeneral.SetOpacity(1f, 0.3f);
             			Actor.ShowTNSIfSelectable(mObjectChosenGeneral.GetLocalizedName().ToString() + Localization.LocalizeString("Lyralei/Localized/SimDialogue:AddedToInventory", new object[0]), StyledNotification.NotificationStyle.kSimTalking);
-						if(!Actor.Household.SharedFamilyInventory.Inventory.TryToAdd(mObjectChosenGeneral))
+                        sewingSkill.AddFinishedProjectsCount(1);
+                        if (!Actor.Household.SharedFamilyInventory.Inventory.TryToAdd(mObjectChosenGeneral))
 						{
 							mObjectChosenGeneral.Destroy();
 							mObjectChosenGeneral = null;
@@ -331,15 +332,19 @@ namespace Sims3.Gameplay.Objects.Lyralei
 	           	base.Cleanup();
             }
         }
-		
-		public class Practise : Interaction<Sim, SewingTable>
+
+        [Tunable]
+        public static float kChanceDiscoverPatternSewingtable = 5f;
+
+        public class Practise : Interaction<Sim, SewingTable>
 		{
 			public class Definition :  InteractionDefinition<Sim, SewingTable, Practise>
 			{
 				public override bool Test(Sim actor, SewingTable target, bool isAutonomous, ref GreyedOutTooltipCallback greyedOutTooltipCallback)
 				{
-                	// The code below will check if there's a chair attached to any containment slot.
-                	if (target.GetTotalNumChairsAtTable() < 1)
+                    
+                    // The code below will check if there's a chair attached to any containment slot.
+                    if (target.GetTotalNumChairsAtTable() < 1)
 					{
                 		greyedOutTooltipCallback = InteractionInstance.CreateTooltipCallback(Localization.LocalizeString("Lyralei/Localized/NoChair:Test", new object[0]));
 						return false;
@@ -356,17 +361,17 @@ namespace Sims3.Gameplay.Objects.Lyralei
 //					}
 	            	return true;
 				}
-	
+
 				public override string GetInteractionName(Sim actor, SewingTable target, InteractionObjectPair iop)
 				{
 					return Localization.LocalizeString("Lyralei/Localized/Practise:InteractionName", new object[0]);
 				}
 			}
-	
+
 		    public static InteractionDefinition Singleton = new Definition();
 
 			public override bool Run()
-			{	
+			{
 				if (!base.Target.ScootInActor(base.Actor))
 				{
 					base.Actor.PlayRouteFailThoughtBalloon(base.Target.GetThumbnailKey());
@@ -408,67 +413,26 @@ namespace Sims3.Gameplay.Objects.Lyralei
 				base.AnimateSim("Loop");
 				bool GainSkillOnLoop = DoLoop(ExitReason.Default, LoopInfinite, null, 10f);
 				
-				print("Magically doing this");
-				if(Pattern.mSavedCachedObjectsForLoopList.Count > 0)
-				{
-					Pattern.CreateCachedPatterns(base.Actor);
-					Pattern.mSavedCachedObjectsForLoopList.Clear();
-				}
-				print("and did it");
-				
 				base.AnimateSim("Exit");
 				sewingSkill.StopSkillGain();
 				base.StandardExit();
 				return GainSkillOnLoop;
 			}
-			
-			public int ShouldIReRunCount = 0;
 
 			public void LoopInfinite(StateMachineClient smc, LoopData loopData)
             {
-				if(RandomUtil.RandomChance(5f))
+				if(RandomUtil.RandomChance(kChanceDiscoverPatternSewingtable))
 				{
-					print("Yay!");
-					
-					// Cache patterns we want to discover
-					ResourceKey cachedPattern = Pattern.GetUnregisteredpattern(base.Actor, true);
-					print("Pattern was cached");
-					
-					//ShouldIReRunCount++;
-					
-//					if(cachedPattern != null && Pattern.mSavedCachedObjectsForLoopList.Count > 0)
-//					{
-//						if(RandomUtil.RandomChance01(0.3f))
-//						{
-//						}
-//					}
-				}
+					Pattern.DiscoverPatternForGlobalObjects(base.Actor);
+                    Actor.ShowTNSIfSelectable(Localization.LocalizeString("Lyralei/Localized/BrowseWebForPatternsSuccess:InteractionName", new object[0]), StyledNotification.NotificationStyle.kSimTalking);
+                }
 				
 				if(Actor.HasExitReason(ExitReason.UserCanceled) || (Actor.HasExitReason(ExitReason.MoodFailure)) || (Actor.HasExitReason(ExitReason.Canceled)))
 				{
 				   	base.Actor.AddExitReason(ExitReason.UserCanceled);
 				   	base.Actor.AddExitReason(ExitReason.MoodFailure);
 				}
-				
             }
-			
-						
-			public void AddingPatterns()
-			{
-//				for(int i = 0; i < howManyTimes; i++)
-//				{
-					print("Got here!");
-					Pattern randomPattern = Pattern.DiscoverPatternWithSkillsSewingTable(Target, Actor);
-					Sims3.SimIFace.Simulator.AddObject(new OneShotFunctionTask(new Function(AddingPatterns)));
-					
-					print("Made pattern");
-					if(randomPattern != null)
-					{
-						Actor.Inventory.TryToAdd(randomPattern);
-						Actor.ShowTNSIfSelectable(Localization.LocalizeString("Lyralei/Localized/BrowseWebForPatternsSuccess:InteractionName", new object[0]), StyledNotification.NotificationStyle.kSimTalking);
-					}
-				//}
-			}
 			
 			public override void Cleanup()
             {
@@ -588,7 +552,8 @@ namespace Sims3.Gameplay.Objects.Lyralei
 
 			public override bool Run()
 			{
-				Definition definition = base.InteractionDefinition as Definition;
+                
+                Definition definition = base.InteractionDefinition as Definition;
 				if (IngredientFabric.CreateAndAddToInventory(base.Target, definition.NumFabric))
 				{
 					base.Actor.ModifyFunds(-GetFabricCost(definition.NumFabric));

@@ -18,7 +18,7 @@ namespace Sims3.Gameplay.Objects.Lyralei
 	/// <summary>
 	/// This is an ingredient that can be used only for Sewable projects.
 	/// </summary>
-	public class IngredientFabric : GameObject, IGameObject, IObjectUI, IScriptObject, IScriptLogic
+	public class IngredientFabric : GameObject, IObjectUI, IScriptObject, IScriptLogic
 	{
 		public bool IsMagicFabric = false;
 		

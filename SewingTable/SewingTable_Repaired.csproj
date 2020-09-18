@@ -47,6 +47,27 @@
     <CheckForOverflowUnderflow>False</CheckForOverflowUnderflow>
     <DefineConstants>TRACE</DefineConstants>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x86\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
+    <FileAlignment>4096</FileAlignment>
+    <NoStdLib>true</NoStdLib>
+    <DebugType>Full</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
+    <OutputPath>bin\x86\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <FileAlignment>4096</FileAlignment>
+    <NoStdLib>true</NoStdLib>
+    <DebugType>None</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
   <ItemGroup>
     <Compile Include="FabricCotton.cs" />
     <Compile Include="FabricDenim.cs" />
@@ -72,9 +93,11 @@
     </Reference>
     <Reference Include="0x28EE9D383A73463E_mscorlib">
       <HintPath>..\..\..\..\SynologyDrive\ownCloud\documents\Workfolder\Tools\Scripts\0x28EE9D383A73463E_mscorlib.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="0x342EE04373CF1E1C_System">
       <HintPath>..\..\..\..\SynologyDrive\ownCloud\documents\Workfolder\Tools\Scripts\0x342EE04373CF1E1C_System.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="0x600F9EA1DDC99FB1_Sims3MetaData">
       <HintPath>..\..\..\..\SynologyDrive\ownCloud\documents\Workfolder\Tools\Scripts\0x600F9EA1DDC99FB1_Sims3MetaData.dll</HintPath>
@@ -82,6 +105,7 @@
     </Reference>
     <Reference Include="0x6AC101133051BEF1_System.Xml">
       <HintPath>..\..\..\..\SynologyDrive\ownCloud\documents\Workfolder\Tools\Scripts\0x6AC101133051BEF1_System.Xml.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="0x78CF6CF5304D0C4F_ScriptCore">
       <HintPath>..\..\..\..\SynologyDrive\ownCloud\documents\Workfolder\Tools\Scripts\0x78CF6CF5304D0C4F_ScriptCore.dll</HintPath>

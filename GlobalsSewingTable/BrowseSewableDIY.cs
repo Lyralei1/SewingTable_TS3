@@ -22,8 +22,8 @@ namespace Sims3.Gameplay.Objects.Lyralei
 	{
 		public sealed class Definition : InteractionDefinition<Sim, Computer, BrowseSewingDIY>
 		{
-			public override string GetInteractionName(Sim actor, Computer target, InteractionObjectPair iop)
-			{
+            public override string GetInteractionName(Sim actor, Computer target, InteractionObjectPair iop)
+            {
 				return Localization.LocalizeString("Lyralei/Localized/BrowseWebForPatterns:InteractionName", new object[0]);
 			}
 			public override bool Test(Sim actor, Computer target, bool isAutonomous, ref GreyedOutTooltipCallback greyedOutTooltipCallback)
@@ -37,31 +37,41 @@ namespace Sims3.Gameplay.Objects.Lyralei
 			}
 		}
 		public static InteractionDefinition Singleton = new Definition();
+
+        [Tunable]
+        public float kChanceDiscoverPatternComputer = 20f;
 		 
 		public override bool Run()
 		{
-			base.StandardEntry();
+            base.StandardEntry();
 			if(!base.Target.StartComputing(this, SurfaceHeight.Table, true))
 			{
 				base.StandardExit();
 				return false;
 			}
-			base.Target.StartVideo(Computer.VideoType.Browse);
+
+            SewingSkill sewingSkill = base.Actor.SkillManager.AddElement(SewingSkill.kSewingSkillGUID) as SewingSkill;
+            if (sewingSkill == null)
+            {
+                GlobalOptionsSewingTable.print("Lyralei's Sewing Table: Failed to load sewing skill");
+                return false;
+            }
+            
+            sewingSkill.StartSkillGain(3.5f);
+
+            base.Target.StartVideo(Computer.VideoType.Browse);
 			base.BeginCommodityUpdates();
 			base.AnimateSim("GenericTyping");
 			bool flag = base.DoLoop(ExitReason.Default, LoopDel, null);
 			base.EndCommodityUpdates(flag);
 			base.Target.StopComputing(this, Computer.StopComputingAction.TurnOff, false);
-			if(RandomUtil.RandomChance(20f))
+			if(RandomUtil.RandomChance(kChanceDiscoverPatternComputer))
 			{
-				Pattern randomPattern = Pattern.DiscoverPatternForGlobalObjects(base.Actor);
-				if(randomPattern != null)
-				{
-					base.Actor.Inventory.TryToAdd(randomPattern);
-					base.Actor.ShowTNSIfSelectable(Localization.LocalizeString("Lyralei/Localized/BrowseWebForPatternsSuccess:InteractionName", new object[0]), StyledNotification.NotificationStyle.kSimTalking);
-				}
-			}
-			base.StandardExit();
+                Pattern.DiscoverPatternForGlobalObjects(base.Actor);
+                Actor.ShowTNSIfSelectable(Localization.LocalizeString("Lyralei/Localized/BrowseWebForPatternsSuccess:InteractionName", new object[0]), StyledNotification.NotificationStyle.kSimTalking);
+            }
+            sewingSkill.StopSkillGain();
+            base.StandardExit();
 			return flag;
 		}
 		
