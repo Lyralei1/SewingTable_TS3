@@ -58,146 +58,14 @@ namespace Lyralei
             // gets the OnPreload method to run before the whole savegame is loaded so your sim doesn't find
             // the skill missing if they need to access its data
 
-            LoadSaveManager.ObjectGroupsPreLoad += new ObjectGroupsPreLoadHandler(GlobalOptionsSewingTable.OnPreload);
-
-            if (!GlobalOptionsSewingTable.alreadyParsed)
+            if (!alreadyParsed)
             {
-                LoadSaveManager.ObjectGroupsPreLoad += new ObjectGroupsPreLoadHandler(GlobalOptionsSewingTable.ParseBooks);
+                LoadSaveManager.ObjectGroupsPreLoad += new ObjectGroupsPreLoadHandler(OnPreload);
+                LoadSaveManager.ObjectGroupsPreLoad += new ObjectGroupsPreLoadHandler(ParseBooks);
             }
             alreadyParsed = true;
             World.OnWorldLoadFinishedEventHandler += new EventHandler(OnWorldLoadFinished);
             World.OnWorldQuitEventHandler += new EventHandler(OnWorldQuit);
-            World.OnStartupAppEventHandler += new EventHandler(OnStartupApp);
-        }
-
-        public static void OnStartupApp(object sender, EventArgs e)
-        {
-            try
-            {
-                LoadSocialData("SewingSkillsSpecialsSocialData");
-                //LoadSocializingActionAvailability("SewingSkillsSpecialsSocializingData");
-                print("SewingSkill data parsed?");
-            }
-            catch (Exception ex)
-            {
-                print("Load social data: " + ex.ToString());
-            }
-        }
-
-        public static void LoadSocialData(string spreadsheet)
-        {
-            XmlDocument root = Simulator.LoadXML(spreadsheet);
-            bool isEp5Installed = GameUtils.IsInstalled(ProductVersion.EP5);
-            if (spreadsheet != null)
-            {
-                print("is NOT null");
-                Sims3.Gameplay.Socializing.XmlElementLookup lookup = new Sims3.Gameplay.Socializing.XmlElementLookup(root);
-                List<XmlElement> list = lookup["Action"];
-                foreach (XmlElement element in list)
-                {
-                    CommodityTypes types;
-                    Sims3.Gameplay.Socializing.XmlElementLookup table = new Sims3.Gameplay.Socializing.XmlElementLookup(element);
-                    if(!ParserFunctions.TryParseEnum<CommodityTypes>(element.GetAttribute("com"), out types, CommodityTypes.Undefined))
-                    {
-                        print("Failed to parse");
-                        return;
-                    }
-
-                    ActionData data = new ActionData(element.GetAttribute("key"), types, ProductVersion.BaseGame, table, isEp5Installed);
-                    ActionData.Add(data);
-                    //ActionData.sData.Add("TalkAboutSewingSkill", data);
-
-                    print("Data parsed");
-                    ActionData actiondata = ActionData.Get("TalkAboutSewingSkill");
-                    if(actiondata != null)
-                    {
-                        print("I guess? " + actiondata.ToString());
-                    }
-                }
-
-                //foreach(KeyValuePair<string, ActionData> item in ActionData.sData)
-                //{
-                //    print("item in sData: " + item.Key);
-                //    print("item in Value: " + item.Value);
-                //}
-                
-
-
-                //list = lookup["ProcTest"];
-                //XmlElement xmlElement;
-
-                //if (list.Count > 0)
-                //{
-                //    xmlElement = list[0];
-                //    string attribute2 = xmlElement.GetAttribute("key");
-                //    if (!string.IsNullOrEmpty(attribute2))
-                //    {
-                //        print("Attribute: " + attribute2.ToString());
-                //        FindMethod(attribute2);
-                //    }
-                //}
-                //else
-                //{
-                //    print("Could not find ProcTest");
-                //}
-            }
-        }
-
-        public static MethodInfo FindMethod(string methodName)
-        {
-            print("Method name: " + methodName.ToString());
-            if (methodName.Contains(","))
-            {
-                print("method name contains , ");
-                string[] array = methodName.Split(',');
-                print("method name split! :)" + array.ToString());
-
-                string typeName = array[0] + "," + array[1];
-                print("Typename: " + typeName.ToString());
-
-                Type type = Type.GetType(typeName, true);
-                print("Type: " + type.ToString());
-
-                string text = array[2];
-                text = text.Replace(" ", "");
-                print("Going to return this: " + text.ToString());
-
-                return type.GetMethod(text);
-            }
-            Type typeFromHandle = typeof(SocialTest);
-            return typeFromHandle.GetMethod(methodName);
-        }
-
-
-        public static void LoadSocializingActionAvailability(string resourceName)
-        {
-            XmlDbData xmlDbData = XmlDbData.ReadData(resourceName);
-            if (xmlDbData != null)
-            {
-                try
-                {
-                    if (xmlDbData.Tables.ContainsKey("SAA"))
-                    {
-                        SocialManager.ParseStcActionAvailability(xmlDbData);
-                    }
-                    if (xmlDbData.Tables.ContainsKey("TAA"))
-                    {
-                        SocialManager.ParseActiveTopicActionAvailability(xmlDbData);
-                    }
-                    if (xmlDbData.Tables.ContainsKey("ActionNames"))
-                    {
-                        SocialManager.ParseActionNames(xmlDbData);
-                    }
-                    if (xmlDbData.Tables.ContainsKey("ActionTopics"))
-                    {
-                        SocialManager.ParseActiveTopic(xmlDbData);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    print("LoadSocializingActionAvailability: " + ex.ToString());
-                }
-            }
         }
 
         static void OnPreload()
@@ -401,25 +269,22 @@ namespace Lyralei
 
         public static void OnWorldLoadFinished(object sender, EventArgs e)
         {
-            SimpleMessageDialog.Show("Lyralei's Sewing Table:", "START");
             ObjectLoader.GetAllSimulationObjectKeysForDialogue();
 
-            //if (Household.ActiveHousehold != null)
-            //{
-            //    Sim[] objects = Sims3.Gameplay.Queries.GetObjects<Sim>();
-            //    for (int i = 0; i < objects.Length; i++)
-            //    {
-            //            AddInteractionsSims(objects[i]);
-            //    }
-            //    EventTracker.AddListener(EventTypeId.kSimInstantiated, OnSimInstantiated);
-            //}
-            //else
-            //{
-            //    EventTracker.AddListener(EventTypeId.kEventSimSelected, OnSimSelected);
-            //}
+            for (int i = 0; i < Sims3.Gameplay.Queries.GetObjects<PhoneSmart>().Length; i++)
+            {
+                if(Sims3.Gameplay.Queries.GetObjects<PhoneSmart>()[i] != null)
+                {
+                    AddInteractionsPhone(Sims3.Gameplay.Queries.GetObjects<PhoneSmart>()[i]);
+                }
+            }
+
             foreach (Computer computer in Sims3.Gameplay.Queries.GetObjects<Computer>())
             {
-                AddInteractionsComputer(computer);
+                if(computer != null)
+                {
+                    AddInteractionsComputer(computer);
+                }
             }
 
             // Save/cache our loaded key to make discovery quicker. Rather than always looping through it. 
@@ -493,43 +358,45 @@ namespace Lyralei
         
 		private static void AddInteractionsComputer(Computer computer)
 		{
-			foreach (InteractionObjectPair interaction in computer.Interactions)
-			{
-				if (interaction.InteractionDefinition.GetType() == BrowseSewingDIY.Singleton.GetType() || (interaction.InteractionDefinition.GetType() == JoinPatternClub.Singleton.GetType()) || (interaction.InteractionDefinition.GetType() == LeavePatternClub.Singleton.GetType()))
-				{
-					return;
-				}
-			}
-            computer.AddInteraction(BrowseSewingDIY.Singleton);
-			computer.AddInteraction(JoinPatternClub.Singleton);
-			computer.AddInteraction(LeavePatternClub.Singleton);
-            computer.AddInteraction(BlogAboutSewing.Singleton);
-        }
-
-        private static void AddInteractionsPhone(Phone phone)
-        {
-            foreach (InteractionObjectPair interaction in phone.Interactions)
+            if (computer != null)
             {
-                if (interaction.InteractionDefinition.GetType() == GottaBlogAboutSewing.Singleton.GetType())
+                foreach (InteractionObjectPair interaction in computer.Interactions)
                 {
-                    return;
-                }
-            }
-            phone.AddInteraction(GottaBlogAboutSewing.Singleton);
-        }
-
-        public static void AddInteractionsSims(Sim sim)
-        {
-            if (sim.SimDescription.TeenOrAbove)
-            {
-                foreach (InteractionObjectPair pair in sim.Interactions)
-                {
-                    if (pair.InteractionDefinition.GetType() == TalkAboutSewing.Singleton.GetType())
+                    if (interaction.InteractionDefinition.GetType() == BrowseSewingDIY.Singleton.GetType() || (interaction.InteractionDefinition.GetType() == JoinPatternClub.Singleton.GetType()) || (interaction.InteractionDefinition.GetType() == LeavePatternClub.Singleton.GetType()))
                     {
                         return;
                     }
                 }
-                //sim.AddInteraction(TalkAboutSewing.Singleton);
+                computer.AddInteraction(BrowseSewingDIY.Singleton);
+                computer.AddInteraction(JoinPatternClub.Singleton);
+                computer.AddInteraction(LeavePatternClub.Singleton);
+                computer.AddInteraction(BlogAboutSewing.Singleton);
+            }
+        }
+
+        public static void AddInteractionsPhone(PhoneSmart phone)
+        {
+            if (phone != null)
+            {
+                foreach (InteractionObjectPair interaction in phone.Interactions)
+                {
+                    if (interaction.InteractionDefinition.GetType() == GottaBlogAboutSewing.Singleton.GetType())
+                    {
+                        return;
+                    }
+                }
+                if (phone.ItemComp.InteractionsInventory != null)
+                {
+                    foreach (InteractionObjectPair iop in phone.ItemComp.InteractionsInventory)
+                    {
+                        if (iop.InteractionDefinition.GetType() == GottaBlogAboutSewing.Singleton.GetType())
+                        {
+                            return;
+                        }
+                    }
+                }
+                phone.AddInteraction(GottaBlogAboutSewing.Singleton);
+                phone.AddInventoryInteraction(GottaBlogAboutSewing.Singleton);
             }
         }
 
@@ -542,73 +409,22 @@ namespace Lyralei
 				{
 					AddInteractionsComputer(computer);
 				}
-                Phone phone = e.TargetObject as Phone;
+                PhoneSmart phone = e.TargetObject as PhoneSmart;
                 if (phone != null)
                 {
                     AddInteractionsPhone(phone);
                 }
+                PhoneFuture phone5 = e.TargetObject as PhoneFuture;
+                if (phone != null)
+                {
+                    AddInteractionsPhone(phone5);
+                }
             }
 			catch (Exception ex2)
 			{
-                print("ListenerAction exc: /n /n" + ex2.ToString());
 			}
 			return ListenerAction.Keep;
 		}
-
-        private static ListenerAction OnSimInstantiated(Event e)
-        {
-            try
-            {
-                Sim sim;
-                if ((sim = (e.TargetObject as Sim)) != null)
-                {
-                    AddInteractionsSims(sim);
-                    print("on sim instantiated");
-                }
-            }
-            catch (Exception)
-            {
-            }
-            // try
-            //{
-            //    print("listener 1");
-            //     Sim sim = e.TargetObject as Sim;
-            //      print("listener 2");
-            //      if (sim != null)
-            //       {
-            //           print("listener 3");
-            //            AddInteractionsSims(sim);
-            //         }
-            //Phone phone = e.TargetObject as Phone;
-            //if (phone != null)
-            // {
-            //     AddInteractionsPhone(phone);
-            // }
-
-            //   }
-            //    catch (Exception ex2)
-            //     {
-            //         print("ListenerAction exc: /n /n" + ex2.ToString());
-            //     }
-            return ListenerAction.Keep;
-        }
-
-        public static ListenerAction OnSimSelected(Event e)
-        {
-            if (Household.ActiveHousehold != null)
-            {
-                Sim[] objects = Sims3.Gameplay.Queries.GetObjects<Sim>();
-                for (int i = 0; i < objects.Length; i++)
-                {
-                    AddInteractionsSims(objects[i]);
-                    print("on sim selected");
-                }
-                EventTracker.AddListener(EventTypeId.kSimInstantiated, OnSimInstantiated);
-                return ListenerAction.Remove;
-            }
-            return ListenerAction.Keep;
-        }
-
 
         public static void print(string text)
 		{

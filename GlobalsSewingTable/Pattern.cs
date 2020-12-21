@@ -269,7 +269,6 @@ namespace Sims3.Gameplay.Objects.Lyralei
 	   public static void CreateCachedPatterns(Sim actor)
 	   {
 	   		PatternInfo mPatternInfoInit 		= new PatternInfo();
-	   		GlobalOptionsSewingTable.print(mSavedCachedObjectsForLoopList.ToString());
 	   		
 	   		foreach(ResourceKey reskey in mSavedCachedObjectsForLoopList)
 	   		{
@@ -436,7 +435,6 @@ namespace Sims3.Gameplay.Objects.Lyralei
 				mPatternInfoInit.fabricsNeeded 				= sSetting.typeFabric;
 				mPatternInfoInit.IsMagic	   				= sSetting.isMagicProject;
 				mPatternInfoInit.amountOfFabricToRemove	    = sSetting.amountRemoveFabric;
-                GlobalOptionsSewingTable.print("SkillLevel chosen:" + mPatternInfoInit.mSkilllevel.ToString());
                 //mPatternInfoInit.mSkilllevel 				= 0;
 
                 // Pattern OBJD key.

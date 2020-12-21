@@ -75,8 +75,6 @@ namespace Sims3.Gameplay.Objects.Lyralei
         
 		public static GameObject mPlaceholderSewable;
 		
-		public static int ticksLeftToGivePatterns = 0;
-		
 		[Tunable]
 		public static float SuccessChance = 10f;
 		
