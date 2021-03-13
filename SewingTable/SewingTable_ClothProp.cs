@@ -13,6 +13,7 @@ namespace Sims3.Gameplay.Objects.Lyralei
 	{
 		public override void OnCreation()
 		{
+            SewingTable.print("I exist!");
 			base.OnCreation();
 		}
 	}

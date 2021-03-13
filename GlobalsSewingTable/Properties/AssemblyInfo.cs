@@ -2,8 +2,10 @@
 using ScriptCore;
 using Sims3.SimIFace;
 using System;
+using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Runtime.CompilerServices;
 
 #endregion
 

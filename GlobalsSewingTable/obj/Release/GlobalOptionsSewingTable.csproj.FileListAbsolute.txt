@@ -4,3 +4,6 @@ C:\Users\Lisa\Documents\SharpDevelop Projects\GlobalDLLImporterTest\GlobalDLLImp
 C:\Users\Lisa\Documents\SharpDevelop Projects\GlobalDLLImporterTest\GlobalDLLImporterTest\bin\Release\0x78CF6CF5304D0C4F_ScriptCore.dll
 C:\Users\Lisa\Documents\SharpDevelop Projects\GlobalDLLImporterTest\GlobalDLLImporterTest\bin\Release\0xB9C90FDC6793BC0A_Sims3GameplayObjects.dll
 C:\Users\Lisa\Documents\SharpDevelop Projects\GlobalDLLImporterTest\GlobalDLLImporterTest\bin\Release\GlobalOptionsSewingTable.dll
+C:\Users\Lisa\Documents\SharpDevelop Projects\SewingTable_TS3\GlobalsSewingTable\bin\x86\Release\GlobalOptionsSewingTable.dll
+C:\Users\Lisa\Documents\SharpDevelop Projects\SewingTable_TS3\GlobalsSewingTable\obj\Release\GlobalOptionsSewingTable.csproj.CoreCompileInputs.cache
+C:\Users\Lisa\Documents\SharpDevelop Projects\SewingTable_TS3\GlobalsSewingTable\obj\Release\GlobalOptionsSewingTable.dll

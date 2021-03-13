@@ -7,7 +7,6 @@ C:\Users\Lisa\Documents\SharpDevelop Projects\SewingTable_TS3\SewingTable\bin\De
 C:\Users\Lisa\Documents\SharpDevelop Projects\SewingTable_TS3\SewingTable\bin\Debug\SewingTable_Repaired.pdb
 C:\Users\Lisa\Documents\SharpDevelop Projects\SewingTable_TS3\SewingTable\obj\Debug\SewingTable_Repaired.dll
 C:\Users\Lisa\Documents\SharpDevelop Projects\SewingTable_TS3\SewingTable\obj\Debug\SewingTable_Repaired.pdb
-C:\Users\Lisa\Documents\SharpDevelop Projects\SewingTable_TS3\SewingTable\obj\Debug\SewingTable_Repaired.csproj.CoreCompileInputs.cache
 C:\Users\Lisa\Documents\SharpDevelop Projects\SewingTable_TS3\SewingTable\bin\x86\Debug\SewingTable_Repaired.dll
 C:\Users\Lisa\Documents\SharpDevelop Projects\SewingTable_TS3\SewingTable\bin\x86\Debug\SewingTable_Repaired.pdb
-C:\Users\Lisa\Documents\SharpDevelop Projects\SewingTable_TS3\SewingTable\obj\Debug\SewingTable_Repaired.csprojAssemblyReference.cache
+C:\Users\Lisa\Documents\SharpDevelop Projects\SewingTable_TS3\SewingTable\obj\Debug\SewingTable_Repaired.csprojResolveAssemblyReference.cache

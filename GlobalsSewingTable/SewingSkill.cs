@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using GlobalDLLImporterTest;
 using Lyralei;
 using Sims3.Gameplay.Abstracts;
 using Sims3.Gameplay.Actors;

@@ -1,31 +1,24 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
 using Lyralei;
+using sims3.UI;
+using sims3.UI.Lyralei;
 using Sims3.Gameplay.Abstracts;
 using Sims3.Gameplay.Actors;
-using Sims3.Gameplay.ActorSystems;
 using Sims3.Gameplay.Autonomy;
 using Sims3.Gameplay.CAS;
 using Sims3.Gameplay.Core;
-using Sims3.Gameplay.EventSystem;
 using Sims3.Gameplay.Interactions;
 using Sims3.Gameplay.Interfaces;
 using Sims3.Gameplay.Lyralei;
 using Sims3.Gameplay.ObjectComponents;
-using Sims3.Gameplay.Objects.HobbiesSkills.Inventing;
-using Sims3.Gameplay.Objects.Insect;
 using Sims3.Gameplay.Objects.Seating;
-using Sims3.Gameplay.Skills;
 using Sims3.Gameplay.Skills.Lyralei;
-using Sims3.Gameplay.Socializing;
 using Sims3.Gameplay.UI;
 using Sims3.Gameplay.Utilities;
 using Sims3.SimIFace;
-using Sims3.SimIFace.CAS;
 using Sims3.SimIFace.CustomContent;
 using Sims3.UI;
-using ScriptCore;
 
 namespace Sims3.Gameplay.Objects.Lyralei
 {
@@ -59,7 +52,7 @@ namespace Sims3.Gameplay.Objects.Lyralei
 		
 		public static List<GameObject> mCreatedObjects = new List<GameObject>();
 
-        public static float Progress;
+        public float Progress;
         
        	public static SewingTable target2;
        	
@@ -108,7 +101,7 @@ namespace Sims3.Gameplay.Objects.Lyralei
 		[Tunable]
 		public static float kChanceToDiscoverPatterns = 100;
 		
-        public static bool IsComplete
+        public bool IsComplete
 		{
 			get
 			{
@@ -133,7 +126,7 @@ namespace Sims3.Gameplay.Objects.Lyralei
 	 			
                 public override string GetInteractionName(Sim actor, SewingTable target, InteractionObjectPair interaction)
                 {
-	                	if (Progress > 0f && !target.IsActorUsingMe(actor as Sim))
+	                	if (target.Progress > 0f && !target.IsActorUsingMe(actor as Sim))
 						{
 	                		IsContinuation = true;
 	                		return Localization.LocalizeString("Lyralei/Localized/ContinueProject:InteractionName", new object[0]);
@@ -152,7 +145,7 @@ namespace Sims3.Gameplay.Objects.Lyralei
                 	{
 	                	if(sewingSkill != null)
 	                	{
-	                		if(Progress > 0f && !target.IsActorUsingMe(actor as Sim))
+	                		if(target.Progress > 0f && !target.IsActorUsingMe(actor as Sim))
 							{
 	                			IsContinuation = true;
 	                			if(skillLevel < mCurrentSkillLevel)
@@ -272,11 +265,11 @@ namespace Sims3.Gameplay.Objects.Lyralei
 						base.AnimateSim("Exit");
             		}
             		definition.IsContinuation = false;
-            		Progress = 0f;
+                    base.Target.Progress = 0f;
 				}
             	if(Actor.HasExitReason(ExitReason.UserCanceled) || Actor.HasExitReason(ExitReason.MoodFailure) || Actor.HasExitReason(ExitReason.Canceled))
             	{
-            		if (Progress > 0f)
+            		if (base.Target.Progress > 0f)
 					{
             			mStoredObject = mObjectChosenGeneral;
 						base.Target.AddPlaceholderSewable();
@@ -289,16 +282,16 @@ namespace Sims3.Gameplay.Objects.Lyralei
             
             public float DraftProgressTest(InteractionInstance instance)
 			{
-				return Progress;
+				return base.Target.Progress;
 			}
             
             public void Loop(StateMachineClient smc, LoopData loopData)
             {
             	//Add failure state here
             	Definition definition = base.InteractionDefinition as Definition;
-            	Progress += loopData.mDeltaTime / kBaseMinTimeMakeSewable;
+                base.Target.Progress += loopData.mDeltaTime / kBaseMinTimeMakeSewable;
             	
-            	if(IsComplete)
+            	if(base.Target.IsComplete)
             	{
             		if(!definition.IsContinuation)
 	            	{
@@ -328,6 +321,108 @@ namespace Sims3.Gameplay.Objects.Lyralei
 					}
 	           	}
 	           	base.Cleanup();
+            }
+        }
+
+        public class SewingClothes : Interaction<Sim, SewingTable>
+        {
+            public class Definition : InteractionDefinition<Sim, SewingTable, SewingClothes>
+            {
+                public bool IsContinuation = false;
+
+                public Definition()
+                {
+                }
+
+                public Definition(bool isContinuation)
+                {
+                    IsContinuation = isContinuation;
+                }
+
+                public override string GetInteractionName(Sim actor, SewingTable target, InteractionObjectPair interaction)
+                {
+                    return "Sew clothies";
+                }
+
+                public override bool Test(Sim actor, SewingTable target, bool isAutonomous, ref GreyedOutTooltipCallback greyedOutTooltipCallback)
+                {
+                    return true;
+                }
+            }
+
+            public static InteractionDefinition Singleton = new Definition();
+
+            public ScriptCore.GameUtils gUtils;
+
+            //ADD PROP FOR BRACELET WITH PINS
+            public override bool Run()
+            {
+                List<Pattern> mResKeysInInventory = new List<Pattern>();
+                foreach (Pattern obj in base.Target.Inventory.FindAll<Pattern>(false))
+                {
+                    print(obj.IsClothing.ToString());
+                    if(obj.mPatternInfo.isClothing)
+                    {
+                        mResKeysInInventory.Add(obj);
+                    }
+                }
+                foreach (Pattern obj in base.Actor.Inventory.FindAll<Pattern>(false))
+                {
+                    print(obj.IsClothing.ToString());
+                    if (obj.IsClothing)
+                    {
+                        // This isn't being fired!
+                        print("Found clothing pattern in sim inventory");
+                        mResKeysInInventory.Add(obj);
+                    }
+                }
+                print(mResKeysInInventory.Count.ToString());
+                //ResourceKey resourceKey = ResourceKey.CreateOutfitKeyFromProductVersion(name, (ProductVersion)2048u);
+                CreateClothingSelector.Show(mResKeysInInventory);
+                return true;
+            }
+
+            public float DraftProgressTest(InteractionInstance instance)
+            {
+                return base.Target.Progress;
+            }
+
+            public void Loop(StateMachineClient smc, LoopData loopData)
+            {
+                //Add failure state here
+                Definition definition = base.InteractionDefinition as Definition;
+                base.Target.Progress += loopData.mDeltaTime / kBaseMinTimeMakeSewable;
+
+                if (base.Target.IsComplete)
+                {
+                    if (!definition.IsContinuation)
+                    {
+                        base.Actor.AddExitReason(ExitReason.Finished);
+                    }
+                    if (definition.IsContinuation)
+                    {
+                        if (mStoredObject != null)
+                        {
+                            mObjectChosenGeneral = mStoredObject;
+                        }
+                        base.Actor.AddExitReason(ExitReason.Finished);
+                    }
+                    base.Actor.AddExitReason(ExitReason.Finished);
+                }
+            }
+
+            public override void Cleanup()
+            {
+                if (mFabric != null)
+                {
+                    if (mFabric != null)
+                    {
+                        mFabric.UnParent();
+                        mFabric.Destroy();
+                        mFabric = null;
+                    }
+                }
+                base.Cleanup();
             }
         }
 
@@ -370,7 +465,7 @@ namespace Sims3.Gameplay.Objects.Lyralei
 
 			public override bool Run()
 			{
-				if (!base.Target.ScootInActor(base.Actor))
+                if (!base.Target.ScootInActor(base.Actor))
 				{
 					base.Actor.PlayRouteFailThoughtBalloon(base.Target.GetThumbnailKey());
 					base.Actor.AddExitReason(ExitReason.FailedToStart);
@@ -389,17 +484,16 @@ namespace Sims3.Gameplay.Objects.Lyralei
 				ActorCurr		= base.Actor;
 				
 				base.StandardEntry();
-				
-				mFabric = null;
-				Vector3 slotPosition = base.Target.GetSlotPosition(Slot.ContainmentSlot_1);
-				Vector3 forwardOfSlot = base.Target.GetForwardOfSlot(Slot.ContainmentSlot_1);
-				mFabric = (SewingTable_ClothProp)GlobalFunctions.CreateObject(ResourceKey.FromString("0x319E4F1D:0x00000000:0x0361BDCA336A8546"), slotPosition, 0, forwardOfSlot, null, null);
+                
+                Vector3 slotPosition = base.Target.GetSlotPosition(Slot.ContainmentSlot_1);
+                Vector3 forwardOfSlot = base.Target.GetForwardOfSlot(Slot.ContainmentSlot_1);
+                SewingTable_ClothProp mFabric = GlobalFunctions.CreateObject(ResourceKey.FromString("0x319E4F1D:0x00000000:0x0361BDCA336A8546"), slotPosition, 0, forwardOfSlot, null, null) as SewingTable_ClothProp;
 				
 				base.EnterStateMachine("SewingTable", "Enter", "x");
 				
 				if(mFabric != null)
 				{
-					Pattern.SetPatternMaterial(mFabric, 0, base.Actor);
+					//Pattern.SetPatternMaterial(mFabric, 0, base.Actor);
 					mFabric.ParentToSlot(base.Target, Slot.ContainmentSlot_1);
 					base.SetActor("fabric", mFabric);
 				}
@@ -581,11 +675,11 @@ namespace Sims3.Gameplay.Objects.Lyralei
 		
 		public override void OnStartup()
 		{
-			MergedPatterns.AddRange(ObjectLoader.EasySewablesList);
-			MergedPatterns.AddRange(ObjectLoader.MediumSewablesList);
-			MergedPatterns.AddRange(ObjectLoader.HardSewablesList);
-			MergedPatterns.AddRange(ObjectLoader.HarderSewablesList);
-			MergedPatterns.AddRange(ObjectLoader.MagicHarderSewablesList);
+			//MergedPatterns.AddRange(ObjectLoader.EasySewablesList);
+			//MergedPatterns.AddRange(ObjectLoader.MediumSewablesList);
+			//MergedPatterns.AddRange(ObjectLoader.HardSewablesList);
+			//MergedPatterns.AddRange(ObjectLoader.HarderSewablesList);
+			//MergedPatterns.AddRange(ObjectLoader.MagicHarderSewablesList);
 			
 			base.AddComponent<InventoryComponent>(new object[0]);
 			if (!mHasInitialFabric && !Sims3.SimIFace.Environment.HasEditInGameModeSwitch)
@@ -609,7 +703,8 @@ namespace Sims3.Gameplay.Objects.Lyralei
 				}
 			}
 			base.AddInteraction(SewingObjects.Singleton);
-			base.AddInteraction(Practise.Singleton);
+            base.AddInteraction(SewingClothes.Singleton);
+            base.AddInteraction(Practise.Singleton);
 			base.AddInteraction(Workbench_OpenInventory.Singleton);
 			base.AddInteraction(Restock.Singleton);
 			Inventory inventory = base.Inventory;
@@ -698,7 +793,12 @@ namespace Sims3.Gameplay.Objects.Lyralei
 				return false;
 			}
 		}
-		
+
+//        public static bool ShowClothingDialogue()
+//        {
+//            return true;
+//        }
+//		
 		
        // Create chosen object, instantiate and place it after the sim is done making it
        public static bool prepareChosenObject(string resKeyString)
