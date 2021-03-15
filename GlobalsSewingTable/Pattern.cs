@@ -70,15 +70,17 @@ namespace Sims3.Gameplay.Objects.Lyralei
             public int mSkilllevel;
 
             public ResourceKey resKeyPattern;
+
             public bool isClothing;
 
-            public CASPart mCASpartData;
+            public SimOutfit mSimOutfit;
+
 
             public PatternObjectInitParams()
             {
             }
 
-            public PatternObjectInitParams(List<SewingSkill.FabricType> fabrics, bool magic, int removeAmount, int skilllevel, ResourceKey resKey, bool clothing, CASPart caspart)
+            public PatternObjectInitParams(List<SewingSkill.FabricType> fabrics, bool magic, int removeAmount, int skilllevel, ResourceKey resKey, bool clothing, SimOutfit outfit)
             {
                 // IF this is needed, make sure to add price values and such. (See: NectarBottleObjectInitParams)
                 fabricsNeeded = fabrics;
@@ -87,10 +89,10 @@ namespace Sims3.Gameplay.Objects.Lyralei
                 amountOfFabricToRemove = removeAmount;
                 resKeyPattern = resKey;
                 isClothing = clothing;
-                mCASpartData = caspart;
+                mSimOutfit = outfit;
             }
 
-            public PatternObjectInitParams(ulong createGroupId, Vector3 createAtPostion, List<SewingSkill.FabricType> fabrics, bool magic, int skilllevel, int level, Vector3 createFacing, HiddenFlags hiddenFlags, int removeAmount, string name, ResourceKey resKey, bool clothing, CASPart caspart)
+            public PatternObjectInitParams(ulong createGroupId, Vector3 createAtPostion, List<SewingSkill.FabricType> fabrics, bool magic, int skilllevel, int level, Vector3 createFacing, HiddenFlags hiddenFlags, int removeAmount, string name, ResourceKey resKey, bool clothing, SimOutfit outfit)
             : base(createGroupId, createAtPostion, level, createFacing, hiddenFlags)
             {
                 // IF this is needed, make sure to add price values and such. (See: NectarBottleObjectInitParams)
@@ -100,7 +102,7 @@ namespace Sims3.Gameplay.Objects.Lyralei
                 amountOfFabricToRemove = removeAmount;
                 resKeyPattern = resKey;
                 isClothing = clothing;
-                mCASpartData = caspart;
+                mSimOutfit = outfit;
             }
         }
 
@@ -122,7 +124,7 @@ namespace Sims3.Gameplay.Objects.Lyralei
 
             public bool isClothing;
 
-            public CASPart mCASpartData;
+            public SimOutfit mSimOutfit;
         }
 
         public PatternInfo mPatternInfo;
@@ -175,11 +177,11 @@ namespace Sims3.Gameplay.Objects.Lyralei
             }
         }
 
-        public CASPart CASpartData
+        public SimOutfit simOutfitData
         {
             get
             {
-                return mPatternInfo.mCASpartData;
+                return mPatternInfo.mSimOutfit;
             }
         }
 
@@ -237,12 +239,27 @@ namespace Sims3.Gameplay.Objects.Lyralei
                         mPatternInfoInit.amountOfFabricToRemove = ObjectLoader.sewableSettings[i].amountRemoveFabric;
                         mPatternInfoInit.mSkilllevel            = 0;
                         mPatternInfoInit.isClothing             = ObjectLoader.sewableSettings[i].isClothing;
-                        mPatternInfoInit.mCASpartData           = GetCASPart(mPatternInfoInit.resKeyPattern);
+
+                        // Move on if the reskey is invalid. 
+                        if (mPatternInfoInit.resKeyPattern == ResourceKey.kInvalidResourceKey)
+                        {
+                            continue;
+                        }
+                        if (mPatternInfoInit.isClothing)
+                        {
+                            mPatternInfoInit.mSimOutfit = new SimOutfit(mPatternInfoInit.resKeyPattern);
+                            if (mPatternInfoInit.mSimOutfit == null)
+                            {
+                                GlobalOptionsSewingTable.print("simoutfit returned null :(");
+                            }
+                        }
 
                     }
+
+
                     // Pattern OBJD key.
                     ResourceKey reskey1 = new ResourceKey(0x19D4F5930F26B2D8, 0x319E4F1D, 0x00000000);
-                    Pattern.PatternObjectInitParams initData = new Pattern.PatternObjectInitParams(mPatternInfoInit.fabricsNeeded, mPatternInfoInit.IsMagic, mPatternInfoInit.amountOfFabricToRemove, mPatternInfoInit.mSkilllevel, mPatternInfoInit.resKeyPattern, mPatternInfoInit.isClothing, mPatternInfoInit.mCASpartData);
+                    Pattern.PatternObjectInitParams initData = new Pattern.PatternObjectInitParams(mPatternInfoInit.fabricsNeeded, mPatternInfoInit.IsMagic, mPatternInfoInit.amountOfFabricToRemove, mPatternInfoInit.mSkilllevel, mPatternInfoInit.resKeyPattern, mPatternInfoInit.isClothing, mPatternInfoInit.mSimOutfit);
                     Pattern pattern = (Pattern)GlobalFunctions.CreateObjectOutOfWorld(reskey1, null, initData);
 
                     if (pattern.GetType() == typeof(FailureObject))
@@ -264,6 +281,14 @@ namespace Sims3.Gameplay.Objects.Lyralei
                         // Currently uses the pattern object's name. We need to concatinate the sewable's name here as well. Since EA never made a function to get the name direction from the resource key, we need to do this.
                         mPatternInfoInit.Name = pattern.GetLocalizedName() + ": " + getname.GetLocalizedName();
                         pattern.NameComponent.SetName(pattern.GetLocalizedName() + ": " + getname.GetLocalizedName());
+                        return pattern;
+                    }
+                    else if (pattern != null && mPatternInfoInit.isClothing)
+                    {
+                        mPatternInfoInit.Name = "Clothing!";
+                        pattern.NameComponent.SetName("Clothing! Set Name");
+
+                        pattern.mPatternInfo = mPatternInfoInit;
                         return pattern;
                     }
                     else
@@ -318,12 +343,27 @@ namespace Sims3.Gameplay.Objects.Lyralei
                         mPatternInfoInit.amountOfFabricToRemove = ObjectLoader.sewableSettings[i].amountRemoveFabric;
                         mPatternInfoInit.mSkilllevel = 0;
                         mPatternInfoInit.isClothing = ObjectLoader.sewableSettings[i].isClothing;
-                        mPatternInfoInit.mCASpartData = GetCASPart(mPatternInfoInit.resKeyPattern);
                     }
+
+                    if (mPatternInfoInit.isClothing)
+                    {
+                        mPatternInfoInit.mSimOutfit = new SimOutfit(mPatternInfoInit.resKeyPattern);
+                        if (mPatternInfoInit.mSimOutfit == null)
+                        {
+                            GlobalOptionsSewingTable.print("simoutfit returned null :(");
+                        }
+                    }
+
+                    // Move on if the reskey is invalid. 
+                    if (mPatternInfoInit.resKeyPattern == ResourceKey.kInvalidResourceKey)
+                    {
+                        continue;
+                    }
+
 
                     // Pattern OBJD key.
                     ResourceKey reskey1 = new ResourceKey(0x19D4F5930F26B2D8, 0x319E4F1D, 0x00000000);
-                    Pattern.PatternObjectInitParams initData = new Pattern.PatternObjectInitParams(mPatternInfoInit.fabricsNeeded, mPatternInfoInit.IsMagic, mPatternInfoInit.amountOfFabricToRemove, mPatternInfoInit.mSkilllevel, mPatternInfoInit.resKeyPattern, mPatternInfoInit.isClothing, mPatternInfoInit.mCASpartData);
+                    Pattern.PatternObjectInitParams initData = new Pattern.PatternObjectInitParams(mPatternInfoInit.fabricsNeeded, mPatternInfoInit.IsMagic, mPatternInfoInit.amountOfFabricToRemove, mPatternInfoInit.mSkilllevel, mPatternInfoInit.resKeyPattern, mPatternInfoInit.isClothing, mPatternInfoInit.mSimOutfit = null);
                     Pattern pattern = (Pattern)GlobalFunctions.CreateObjectOutOfWorld(reskey1, null, initData);
                     if (pattern.GetType() == typeof(FailureObject))
                     {
@@ -344,6 +384,15 @@ namespace Sims3.Gameplay.Objects.Lyralei
                             getname.Destroy();
                         }
                         actor.Inventory.TryToAdd(pattern);
+                    }
+                    else if (pattern != null && mPatternInfoInit.isClothing)
+                    {
+                        mPatternInfoInit.Name = "Clothing!";
+                        pattern.NameComponent.SetName("Clothing! Set Name");
+
+                        pattern.mPatternInfo = mPatternInfoInit;
+                        actor.Inventory.TryToAdd(pattern);
+                        
                     }
                     else
                     {
@@ -385,11 +434,25 @@ namespace Sims3.Gameplay.Objects.Lyralei
                             mPatternInfoInit.IsMagic = ObjectLoader.sewableSettings[i].isMagicProject;
                             mPatternInfoInit.amountOfFabricToRemove = ObjectLoader.sewableSettings[i].amountRemoveFabric;
                             mPatternInfoInit.isClothing = ObjectLoader.sewableSettings[i].isClothing;
-                            mPatternInfoInit.mCASpartData = GetCASPart(mPatternInfoInit.resKeyPattern);
+
+                            if (mPatternInfoInit.isClothing)
+                            {
+                                mPatternInfoInit.mSimOutfit = new SimOutfit(mPatternInfoInit.resKeyPattern);
+                                if (mPatternInfoInit.mSimOutfit == null)
+                                {
+                                    GlobalOptionsSewingTable.print("simoutfit returned null :(");
+                                }
+                            }
+
+                            // Move on if the reskey is invalid. 
+                            if (mPatternInfoInit.resKeyPattern == ResourceKey.kInvalidResourceKey)
+                            {
+                                continue;
+                            }
 
                             // Pattern OBJD key.
                             ResourceKey reskey1 = new ResourceKey(0x19D4F5930F26B2D8, 0x319E4F1D, 0x00000000);
-                            Pattern.PatternObjectInitParams initData = new Pattern.PatternObjectInitParams(mPatternInfoInit.fabricsNeeded, mPatternInfoInit.IsMagic, mPatternInfoInit.amountOfFabricToRemove, mPatternInfoInit.mSkilllevel, mPatternInfoInit.resKeyPattern, mPatternInfoInit.isClothing, mPatternInfoInit.mCASpartData);
+                            Pattern.PatternObjectInitParams initData = new Pattern.PatternObjectInitParams(mPatternInfoInit.fabricsNeeded, mPatternInfoInit.IsMagic, mPatternInfoInit.amountOfFabricToRemove, mPatternInfoInit.mSkilllevel, mPatternInfoInit.resKeyPattern, mPatternInfoInit.isClothing, mPatternInfoInit.mSimOutfit);
                             Pattern pattern = GlobalFunctions.CreateObject(reskey1, target.GetSlotPosition(Slot.ContainmentSlot_1), 0, target.GetForwardOfSlot(Slot.ContainmentSlot_1), null, initData) as Pattern;
 
                             SetPatternMaterial(pattern, mPatternInfoInit.mSkilllevel, actor);
@@ -411,6 +474,15 @@ namespace Sims3.Gameplay.Objects.Lyralei
                                 //Set global
 
                                 //actor.ShowTNSIfSelectable("Ah yes! I just came up with a great project to sew and just drew the pattern for it! For the time being, I put it in the sewing table's inventory.", StyledNotification.NotificationStyle.kSimTalking);
+                                return pattern;
+                            }
+                            else if (pattern != null && mPatternInfoInit.isClothing)
+                            {
+                                mPatternInfoInit.Name = "Clothing!";
+                                pattern.NameComponent.SetName("Clothing! Set Name");
+
+                                pattern.mPatternInfo = mPatternInfoInit;
+                                actor.Inventory.TryToAdd(pattern);
                                 return pattern;
                             }
                             else
@@ -492,12 +564,20 @@ namespace Sims3.Gameplay.Objects.Lyralei
                 mPatternInfoInit.IsMagic = sSetting.isMagicProject;
                 mPatternInfoInit.amountOfFabricToRemove = sSetting.amountRemoveFabric;
                 mPatternInfoInit.isClothing = sSetting.isClothing;
-                mPatternInfoInit.mCASpartData = GetCASPart(mPatternInfoInit.resKeyPattern);
                 //mPatternInfoInit.mSkilllevel 				= 0;
+
+                if (mPatternInfoInit.isClothing)
+                {
+                    mPatternInfoInit.mSimOutfit = new SimOutfit(mPatternInfoInit.resKeyPattern);
+                    if (mPatternInfoInit.mSimOutfit == null)
+                    {
+                        GlobalOptionsSewingTable.print("simoutfit returned null :(");
+                    }
+                }
 
                 // Pattern OBJD key.
                 ResourceKey reskey1 = new ResourceKey(0x19D4F5930F26B2D8, 0x319E4F1D, 0x00000000);
-                Pattern.PatternObjectInitParams initData = new Pattern.PatternObjectInitParams(mPatternInfoInit.fabricsNeeded, mPatternInfoInit.IsMagic, mPatternInfoInit.amountOfFabricToRemove, mPatternInfoInit.mSkilllevel, mPatternInfoInit.resKeyPattern, mPatternInfoInit.isClothing, mPatternInfoInit.mCASpartData);
+                Pattern.PatternObjectInitParams initData = new Pattern.PatternObjectInitParams(mPatternInfoInit.fabricsNeeded, mPatternInfoInit.IsMagic, mPatternInfoInit.amountOfFabricToRemove, mPatternInfoInit.mSkilllevel, mPatternInfoInit.resKeyPattern, mPatternInfoInit.isClothing, mPatternInfoInit.mSimOutfit);
                 Pattern pattern = (Pattern)GlobalFunctions.CreateObjectOutOfWorld(reskey1, null, initData);
 
                 if (pattern.GetType() == typeof(FailureObject))
@@ -519,10 +599,20 @@ namespace Sims3.Gameplay.Objects.Lyralei
                         getname.Destroy();
                     }
                     SimDescription desc = actor.SimDescription;
+                    pattern.mPatternInfo = mPatternInfoInit;
                     SewingSkill.AddItemsToDiscoveredList(desc, mPatternInfoInit.resKeyPattern);
 
                     actor.Inventory.TryToAdd(pattern);
                     sewingSkill.AddPatternCount(1);
+                    return pattern;
+                }
+                else if (pattern != null && mPatternInfoInit.isClothing)
+                {
+                    mPatternInfoInit.Name = "Clothing!";
+                    pattern.NameComponent.SetName("Clothing! Set Name");
+
+                    pattern.mPatternInfo = mPatternInfoInit;
+                    actor.Inventory.TryToAdd(pattern);
 
                     return pattern;
                 }
@@ -565,15 +655,29 @@ namespace Sims3.Gameplay.Objects.Lyralei
                     mPatternInfoInit.amountOfFabricToRemove = ObjectLoader.sewableSettings[i].amountRemoveFabric;
                     mPatternInfoInit.mSkilllevel = 0;
                     mPatternInfoInit.isClothing = ObjectLoader.sewableSettings[i].isClothing;
-                    mPatternInfoInit.mCASpartData = GetCASPart(mPatternInfoInit.resKeyPattern);
+
+                    if (mPatternInfoInit.isClothing)
+                    {
+                        mPatternInfoInit.mSimOutfit = new SimOutfit(mPatternInfoInit.resKeyPattern);
+                        if(mPatternInfoInit.mSimOutfit == null)
+                        {
+                            GlobalOptionsSewingTable.print("simoutfit returned null :(");
+                        }
+                    }
+
+                    // Move on if the reskey is invalid. 
+                    if (mPatternInfoInit.resKeyPattern == ResourceKey.kInvalidResourceKey)
+                    {
+                        continue;
+                    }
 
                     // Pattern OBJD key.
                     ResourceKey reskey1 = new ResourceKey(0x19D4F5930F26B2D8, 0x319E4F1D, 0x00000000);
-                    Pattern.PatternObjectInitParams initData = new Pattern.PatternObjectInitParams(mPatternInfoInit.fabricsNeeded, mPatternInfoInit.IsMagic, mPatternInfoInit.amountOfFabricToRemove, mPatternInfoInit.mSkilllevel, mPatternInfoInit.resKeyPattern, mPatternInfoInit.isClothing, mPatternInfoInit.mCASpartData);
+                    Pattern.PatternObjectInitParams initData = new Pattern.PatternObjectInitParams(mPatternInfoInit.fabricsNeeded, mPatternInfoInit.IsMagic, mPatternInfoInit.amountOfFabricToRemove, mPatternInfoInit.mSkilllevel, mPatternInfoInit.resKeyPattern, mPatternInfoInit.isClothing, mPatternInfoInit.mSimOutfit);
                     Pattern pattern = (Pattern)GlobalFunctions.CreateObjectOutOfWorld(reskey1, null, initData);
 
-                    
-                    if (pattern.GetType() == typeof(FailureObject) || mPatternInfoInit.resKeyPattern == ResourceKey.kInvalidResourceKey)
+                    //Move on if the pattern resulted into a failure Object
+                    if (pattern.GetType() == typeof(FailureObject))
                     {
                         continue;
                     }
@@ -594,13 +698,10 @@ namespace Sims3.Gameplay.Objects.Lyralei
                     }
                     else if (pattern != null && mPatternInfoInit.isClothing)
                     {
-                        GlobalOptionsSewingTable.print("Something was supposed to be clothing! : " + mPatternInfoInit.resKeyPattern.ToString());
                         mPatternInfoInit.Name = "Clothing!";
                         pattern.NameComponent.SetName("Clothing! Set Name");
 
                         pattern.mPatternInfo = mPatternInfoInit;
-                        GlobalOptionsSewingTable.print(pattern.IsClothing.ToString()); // returns false
-
                         actor.Inventory.TryToAdd(pattern);
                     }
                     else
@@ -613,55 +714,6 @@ namespace Sims3.Gameplay.Objects.Lyralei
                     GlobalOptionsSewingTable.print("Lyralei's Sewing table: \n \n REPORT THIS TO LYRALEI: " + ex2.ToString());
                 }
                 //}
-            }
-        }
-
-        //	   public static void OnPostWorldLoad()
-        //	   {
-        //		   	GlobalOptionsSewingTable.mPatternClubAlarm = AlarmManager.Global.AddAlarmDay(1f, DaysOfTheWeek.All, GlobalOptionsSewingTable.SendPatterns, "Mailbox:  Pattern club", AlarmType.NeverPersisted, null);
-        //	   }
-
-        public static bool GetCASPart(ResourceKey key, CASAgeGenderFlags flags, BodyTypes bodyType, uint category, out CASPart result)
-        {
-            CASPart[] cachedParts = OutfitUtils.GetCachedParts(flags, bodyType, category);
-            if (cachedParts.Length != 0)
-            {
-                CASPart[] array = cachedParts;
-                foreach (CASPart cASPart in array)
-                {
-                    if (cASPart.Key == key)
-                    {
-                        result = cASPart;
-                        return true;
-                    }
-                    if (cASPart.ParentKey == key)
-                    {
-                        result = cASPart;
-                        return true;
-                    }
-                }
-            }
-            result = new CASPart(key);
-            if (result.Key.InstanceId == 0L)
-            {
-                return false;
-            }
-            return true;
-        }
-
-        public static CASPart GetCASPart(ResourceKey key)
-        {
-            CASPart result = new CASPart(key);
-            CASPart cASPart;
-
-            if (GetCASPart(result.Key, result.AgeGenderSpecies, result.BodyType, result.CategoryFlags, out cASPart))
-            {
-                GlobalOptionsSewingTable.print("Successfully found the caspart!");
-                return result;
-            }
-            else
-            {
-                return result;
             }
         }
 

@@ -71,7 +71,7 @@ namespace Lyralei
             }
             catch(Exception ex)
             {
-                print(ex.Message);
+                print(ex.Message + ex.Source.ToString());
             }
         }
 
@@ -450,26 +450,20 @@ namespace Lyralei
 
         private static ListenerAction OnObjectChanged(Event e)
         {
-            try
+            Computer computer = e.TargetObject as Computer;
+            if (computer != null)
             {
-                Computer computer = e.TargetObject as Computer;
-                if (computer != null)
-                {
-                    AddInteractionsComputer(computer);
-                }
-                PhoneSmart phone = e.TargetObject as PhoneSmart;
-                if (phone != null)
-                {
-                    AddInteractionsPhone(phone);
-                }
-                PhoneFuture phone5 = e.TargetObject as PhoneFuture;
-                if (phone != null)
-                {
-                    AddInteractionsPhone(phone5);
-                }
+                AddInteractionsComputer(computer);
             }
-            catch (Exception ex2)
+            PhoneSmart phone = e.TargetObject as PhoneSmart;
+            if (phone != null)
             {
+                AddInteractionsPhone(phone);
+            }
+            PhoneFuture phone5 = e.TargetObject as PhoneFuture;
+            if (phone != null)
+            {
+                AddInteractionsPhone(phone5);
             }
             return ListenerAction.Keep;
         }
