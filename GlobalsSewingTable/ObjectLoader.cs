@@ -247,6 +247,7 @@ namespace Sims3.Gameplay.Lyralei
             public bool isMagicProject = false;
             public bool isDiscoverableOnly = false;
             public bool isClothing = false;
+            public string clothingName = "";
         }
         public List<ResourceKey> SettingsXML = new List<ResourceKey>();
 
@@ -277,7 +278,6 @@ namespace Sims3.Gameplay.Lyralei
                 {
                     // Found the XML file, now we want to extract the data inside the XML
                     ReadSettingData(XMLKey1);
-                    GlobalOptionsSewingTable.print("clothing key " + XMLKey1.ToString());
                 }
             }
             keySearch.Reset();
@@ -391,6 +391,19 @@ namespace Sims3.Gameplay.Lyralei
                         else
                         {
                             sewableSettings[currentEntry].isClothing = false;
+                        }
+                    }
+                    if (currentLine == 7)
+                    {
+                        if (element.Contains("ClothingName="))
+                        {
+                            string name = element.Replace("ClothingName=", "");
+                            
+                            sewableSettings[currentEntry].clothingName = name;
+                        }
+                        else
+                        {
+                            sewableSettings[currentEntry].clothingName = "";
                         }
                     }
                     // Check for dupes

@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Xml;
+using Sims3.Gameplay;
 using Sims3.Gameplay.Abstracts;
 using Sims3.Gameplay.Actors;
 using Sims3.Gameplay.Autonomy;
@@ -12,13 +14,17 @@ using Sims3.Gameplay.EventSystem;
 using Sims3.Gameplay.Lyralei;
 using Sims3.Gameplay.Objects;
 using Sims3.Gameplay.Objects.Electronics;
+using Sims3.Gameplay.Objects.Lighting;
 using Sims3.Gameplay.Objects.Lyralei;
 using Sims3.Gameplay.Objects.RabbitHoles;
 using Sims3.Gameplay.Skills;
 using Sims3.Gameplay.Skills.Lyralei;
 using Sims3.Gameplay.Socializing;
+using Sims3.Gameplay.Tutorial;
+using Sims3.Gameplay.UI;
 using Sims3.Gameplay.Utilities;
 using Sims3.SimIFace;
+using Sims3.SimIFace.CAS;
 using Sims3.UI;
 
 namespace Lyralei
@@ -30,7 +36,12 @@ namespace Lyralei
         [Tunable]
         protected static bool kInstantiator = false;
 
+        [Tunable]
+        public static bool mShouldSimChangeAfterGift = true;
+
         public static AlarmHandle mPatternClubAlarm = AlarmHandle.kInvalidHandle;
+
+        public static AlarmHandle mWearClothing = AlarmHandle.kInvalidHandle;
 
         public static SuperSetEnum<SkillNames> sSkillEnumValues = new SuperSetEnum<SkillNames>();
 
@@ -80,6 +91,8 @@ namespace Lyralei
             try
             {
                 ObjectLoader.GetAllXMLSettingsForSewables();
+                XmlDbData data = XmlDbData.ReadData(new ResourceKey(ResourceUtils.HashString64("tutorialSewingTable"), 0x0333406C, 0x0), false);
+                ParseLessons(data);
             }
             catch (Exception ex2)
             {
@@ -311,6 +324,54 @@ namespace Lyralei
                 return;
             }
         }
+
+        public static void ParseLessons(XmlDbData data)
+        {
+            bool flag = DeviceConfig.IsMac();
+            XmlDbTable xmlDbTable = null;
+            data.Tables.TryGetValue("Tutorialettes", out xmlDbTable);
+            //Tutorialette.Tutorialettes = new List<TutorialetteDialog.TutorialetteData>();
+            //Tutorialette.sIgnoreGlobalCooldown = new Dictionary<Lessons, bool>();
+            List<TutorialetteDialog.TutorialettePage> list = null;
+            //Tutorialette.sLessonTnsKeys = new Dictionary<Lessons, LessonTNSData>();
+            foreach (XmlDbRow row in xmlDbTable.Rows)
+            {
+                ProductVersion productVersion;
+                row.TryGetEnum("EPValid", out productVersion, ProductVersion.BaseGame);
+                if (GameUtils.IsInstalled(productVersion))
+                {
+                    if (!string.IsNullOrEmpty(row["LessonKey"]))
+                    {
+                        //print("Lesson defaulted into: " + lessons.ToString());
+                        string lessonTnsKey = "Gameplay/Excel/Tutorial/Tutorialettes:" + row["TnsKey"];
+                        LessonTNSData value = new LessonTNSData(lessonTnsKey, productVersion);
+                        Tutorialette.sLessonTnsKeys.Add((Lessons)207, value);
+                        list = new List<TutorialetteDialog.TutorialettePage>();
+                        Tutorialette.Tutorialettes.Add(new TutorialetteDialog.TutorialetteData("Gameplay/Excel/Tutorial/Tutorialettes:" + row["LessonName"], list, (int)207, (ulong)productVersion));
+                        Tutorialette.sIgnoreGlobalCooldown.Add((Lessons)207, ParserFunctions.ParseBool(row["IgnoreGlobalCooldown"]));
+                    }
+                    if (list != null)
+                    {
+                        string text;
+                        if (flag)
+                        {
+                            text = row["PageTextMac"];
+                            if (string.IsNullOrEmpty(text))
+                            {
+                                text = row["PageText"];
+                            }
+                        }
+                        else
+                        {
+                            text = row["PageText"];
+                        }
+                        list.Add(new TutorialetteDialog.TutorialettePage("Gameplay/Excel/Tutorial/Tutorialettes:" + text, row["PageImage"]));
+                    }
+                }
+            }
+        }
+
+
         public static Dictionary<string, BookSkillData> BookSkillDataListLyralei = new Dictionary<string, BookSkillData>();
 
         public static void OnWorldLoadFinished(object sender, EventArgs e)
@@ -329,6 +390,7 @@ namespace Lyralei
             {
                 if (computer != null)
                 {
+
                     AddInteractionsComputer(computer);
                 }
             }
@@ -338,18 +400,202 @@ namespace Lyralei
             {
                 Pattern.mStoredPatternsKeySettingsList.Add(ObjectLoader.sewableSettings[i].key);
             }
-            print(Pattern.mStoredPatternsKeySettingsList.Count.ToString());
-
             mPatternClubAlarm = AlarmManager.Global.AddAlarmDay(1f, DaysOfTheWeek.Thursday, GlobalOptionsSewingTable.SendPatterns, "Mailbox:  Pattern club", AlarmType.NeverPersisted, null);
+
+            //mWearClothing = AlarmManager.Global.AddAlarmRepeating(24f, TimeUnit.Hours, WearGiftedClothing, 1f, TimeUnit.Days, "Wear gifted clothing", AlarmType.AlwaysPersisted, null);
+
             EventTracker.AddListener(EventTypeId.kBoughtObject, new ProcessEventDelegate(OnObjectChanged));
             EventTracker.AddListener(EventTypeId.kInventoryObjectAdded, new ProcessEventDelegate(OnObjectChanged));
             EventTracker.AddListener(EventTypeId.kObjectStateChanged, new ProcessEventDelegate(OnObjectChanged));
         }
 
+        //public static void SetUpAlarmForGiftedItems()
+        //{
+        //    print("Setting up alarm");
+        //    foreach (KeyValuePair<Sim, List<Pattern>> keyvalues in retrieveData.mGiftableClothing)
+        //    {
+        //        alarmPatterns
+
+
+        //        // If sim exists and was saved properly, and there are more than one patterns...
+        //        if (keyvalues.Key != null && keyvalues.Value.Count >= 1)
+        //        {
+        //            print("Sim was found!");
+        //            SimDescription simdesc = keyvalues.Key.mSimDescription;
+        //            Sim sim = keyvalues.Key;
+
+        //            // get a random pattern from the list. Especially good if they have a few dozen patterns they can wear :p
+        //            Pattern randomPattern = RandomUtil.GetRandomObjectFromList(keyvalues.Value);
+        //            print(randomPattern.GetResourceKey().ToString());
+        //            // Check if the patterns age and gender meet with the stored sim..
+        //            if(randomPattern.mPatternInfo.mSimOutfit.Age == simdesc.Age && randomPattern.mPatternInfo.mSimOutfit.Gender == simdesc.Gender)
+        //            {
+        //                print("Found pattern for age and gender");
+        //                ApplyGiftedSewingsToOutfits(randomPattern.mPatternInfo.mSimOutfit, sim);
+        //                OutfitCategories currentOutfitCategory = sim.CurrentOutfitCategory;
+        //                sim.RefreshCurrentOutfit(true);
+        //                sim.SwitchToOutfitWithoutSpin(sim.CurrentOutfitCategory);
+        //                print("1 Changing time!");
+        //                //Sim.SwitchOutfitHelper mSwitchOutfitHelper = new Sim.SwitchOutfitHelper(sim, currentOutfitCategory, 0);
+        //                //if (mSwitchOutfitHelper != null)
+        //                //{
+        //                //    mSwitchOutfitHelper.Start();
+        //                //    mSwitchOutfitHelper.ChangeOutfit();
+        //                //    print("Changing time!");
+        //                //}
+        //            }
+        //        }
+        //        else
+        //        {
+        //            continue;
+        //        }
+        //    }
+        //}
+
+        //public static uint[] ClothingCategory =
+        //{
+        //    2,
+        //    4,
+        //    8,
+        //    16,
+        //    32,
+        //    256,
+        //};
+
+        ////indly stolen from face paint :p
+        //public static void ApplyGiftedSewingsToOutfits(CASPart casPart, Sim desc)
+        //{
+        //    OutfitCategoryMap outfits = desc.mSimDescription.Outfits;
+        //    OutfitCategories[] listOfCategories = desc.mSimDescription.ListOfCategories;
+
+        //    List<uint> possibleOutfits = new List<uint>();
+
+        //    foreach(uint cat in ClothingCategory)
+        //    {
+        //        if((casPart.CategoryFlags & cat) == cat)
+        //        {
+        //            print("Match made! CAT: " + cat.ToString());
+        //            possibleOutfits.Add(cat);
+        //        }
+        //    }
+        //    if (possibleOutfits.Count > 0)
+        //    {
+        //        uint randomed = RandomUtil.GetRandomObjectFromList(possibleOutfits);
+        //        print(randomed.ToString());
+        //        //ArrayList arrayList = ((Hashtable)outfits)[randomed] as ArrayList;
+        //        //if (arrayList != null)
+        //        //{
+        //        //    print(arrayList.Count.ToString());
+        //        //    SimBuilder simBuilder = new SimBuilder();
+        //        //    simBuilder.UseCompression = true;
+        //        //    simBuilder.Age = desc.mSimDescription.Age;
+        //        //    SimOutfit outfit = arrayList[0] as SimOutfit;
+        //        //    //SimOutfit outfit = ((Hashtable)outfits)[randomed] as SimOutfit;
+        //        //    print(simBuilder.ToString());
+        //        //    OutfitUtils.SetOutfit(simBuilder, outfit, desc.mSimDescription);
+        //        //    OutfitUtils.SetAutomaticModifiers(simBuilder);
+        //        //    simBuilder.RemoveParts(casPart.BodyType);
+        //        //    print(simBuilder.ToString());
+        //        //    //OutfitUtils.AddPartAndPreset(simBuilder, casPart, false);
+        //        //    //casPart.CategoryFlags = casPart.CategoryFlags - 0x01000000;
+        //        //    OutfitUtils.AddPartAndPreset(simBuilder, casPart, false);
+        //        //    print(simBuilder.ToString());
+        //        //    ResourceKey key = simBuilder.CacheOutfit(string.Format("MakeCategoryOutfitForSewableGiftShared_{0}_{1}_{2}", simBuilder.Age, desc.mSimDescription.FirstName, (OutfitCategories)randomed));
+        //        //    print(key.ToString());
+        //        //    SimOutfit outfit2;
+        //        //    if (OutfitUtils.TryGenerateSimOutfit(key, out outfit2))
+        //        //    {
+        //        //        desc.mSimDescription.RemoveOutfit((OutfitCategories)randomed, 0, true);
+        //        //        desc.mSimDescription.AddOutfit(outfit2, (OutfitCategories)randomed, 0);
+        //        //        print("MAde outfit");
+        //        //    }
+        //        //    print("Should now have added the item!");
+        //        //    simBuilder.Dispose();
+        //        //}
+
+        //        OutfitCategories cat = OutfitCategories.None;
+        //        switch (randomed)
+        //        {
+        //            case 2:
+        //                {
+        //                    cat = OutfitCategories.Everyday;
+        //                    break;
+        //                }
+        //            case 4:
+        //                {
+        //                    cat = OutfitCategories.Formalwear;
+        //                    break;
+        //                }
+        //            case 8:
+        //                {
+        //                    cat = OutfitCategories.Sleepwear;
+        //                    break;
+        //                }
+        //            case 16:
+        //                {
+        //                    cat = OutfitCategories.Swimwear;
+        //                    break;
+        //                }
+        //            case 32:
+        //                {
+        //                    cat = OutfitCategories.Athletic;
+        //                    break;
+        //                }
+        //            case 256:
+        //                {
+        //                    cat = OutfitCategories.Makeover;
+        //                    break;
+        //                }
+        //            default:
+        //                {
+        //                    cat = OutfitCategories.Everyday;
+        //                    break;
+        //                }
+        //        }
+
+        //        SimBuilder simBuilder = new SimBuilder();
+        //        simBuilder.UseCompression = true;
+        //        simBuilder.Age = desc.mSimDescription.Age;
+        //        SimOutfit outfit = desc.mSimDescription.GetOutfit(cat, 0);
+        //        OutfitUtils.SetOutfit(simBuilder, outfit, desc.mSimDescription);
+        //        OutfitUtils.SetAutomaticModifiers(simBuilder);
+        //        simBuilder.RemoveParts(casPart.BodyType);
+        //        OutfitUtils.AddPartAndPreset(simBuilder, casPart, false);
+        //        ResourceKey key = simBuilder.CacheOutfit(string.Format("MakeCategoryOutfitForSewableGiftShared_{0}_{1}_{2}", simBuilder.Age, desc.FirstName, cat));
+        //        SimOutfit outfit2;
+        //        if (OutfitUtils.TryGenerateSimOutfit(key, out outfit2))
+        //        {
+        //            desc.mSimDescription.RemoveOutfit(cat, 0, true);
+        //            desc.mSimDescription.AddOutfit(outfit2, cat, 0);
+        //        }
+        //        print("Should now have added the item!");
+        //        simBuilder.Dispose();
+        //    }
+        //}
+
         public static void OnWorldQuit(object sender, EventArgs e)
         {
             AlarmManager.Global.RemoveAlarm(mPatternClubAlarm);
             mPatternClubAlarm = AlarmHandle.kInvalidHandle;
+
+            AlarmManager.Global.RemoveAlarm(mWearClothing);
+            mWearClothing = AlarmHandle.kInvalidHandle;
+        }
+
+        public static void TriggerLesson(Lessons lesson, Sim sim)
+        {
+            if (!IntroTutorial.IsRunning && !Sims3.SimIFace.Environment.HasEditInGameModeSwitch && Tutorialette.AreTutorialTipsEnabled())
+            {
+                InWorldSubState inWorldSubState = GameStates.GetInWorldSubState();
+                if (inWorldSubState != null)
+                {
+                    string stateName = inWorldSubState.StateName;
+                    if (stateName != "Play Flow" && Tutorialette.IsValidLesson(lesson, sim))
+                    {
+                        TutorialetteNotification.Show(Tutorialette.sLessonTnsKeys[lesson].LessonTnsKey, (int)lesson);
+                    }
+                }
+            }
         }
 
         public static void ParseBooks()

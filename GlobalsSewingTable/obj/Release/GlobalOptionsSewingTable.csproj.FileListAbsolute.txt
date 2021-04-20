@@ -7,3 +7,4 @@ C:\Users\Lisa\Documents\SharpDevelop Projects\GlobalDLLImporterTest\GlobalDLLImp
 C:\Users\Lisa\Documents\SharpDevelop Projects\SewingTable_TS3\GlobalsSewingTable\bin\x86\Release\GlobalOptionsSewingTable.dll
 C:\Users\Lisa\Documents\SharpDevelop Projects\SewingTable_TS3\GlobalsSewingTable\obj\Release\GlobalOptionsSewingTable.csproj.CoreCompileInputs.cache
 C:\Users\Lisa\Documents\SharpDevelop Projects\SewingTable_TS3\GlobalsSewingTable\obj\Release\GlobalOptionsSewingTable.dll
+C:\Users\Lisa\Documents\SharpDevelop Projects\SewingTable_TS3\GlobalsSewingTable\obj\Release\GlobalOptionsSewingTable.csprojAssemblyReference.cache
