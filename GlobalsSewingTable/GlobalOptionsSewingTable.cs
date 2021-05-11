@@ -68,21 +68,18 @@ namespace Lyralei
         {
             // gets the OnPreload method to run before the whole savegame is loaded so your sim doesn't find
             // the skill missing if they need to access its data
-
             try
             {
-                if (!alreadyParsed)
-                {
-                    LoadSaveManager.ObjectGroupsPreLoad += new ObjectGroupsPreLoadHandler(OnPreload);
-                    LoadSaveManager.ObjectGroupsPreLoad += new ObjectGroupsPreLoadHandler(ParseBooks);
-                }
-                alreadyParsed = true;
+
+                LoadSaveManager.ObjectGroupsPreLoad += new ObjectGroupsPreLoadHandler(OnPreload);
+                LoadSaveManager.ObjectGroupsPreLoad += new ObjectGroupsPreLoadHandler(ParseBooks);
                 World.OnWorldLoadFinishedEventHandler += new EventHandler(OnWorldLoadFinished);
                 World.OnWorldQuitEventHandler += new EventHandler(OnWorldQuit);
+                //alreadyParsed = true;
             }
             catch(Exception ex)
             {
-                print(ex.Message + ex.Source.ToString());
+                //print("Issue in setting stuff up: " + ex.Message + ex.Source.ToString());
             }
         }
 
@@ -96,7 +93,7 @@ namespace Lyralei
             }
             catch (Exception ex2)
             {
-                print("There was a problem, couldn't get the sewables settings \n \n" + ex2.Message.ToString());
+                //print("There was a problem, couldn't get the sewables settings (if the error is talking about an already existed key, then this does mean that you have the patterns! It just says that the sewing table has already parsed all the patterns already. So feel free to continue playing!)  \n \n" + ex2.Message.ToString());
                 return;
             }
             try
@@ -376,6 +373,11 @@ namespace Lyralei
 
         public static void OnWorldLoadFinished(object sender, EventArgs e)
         {
+            if (alreadyParsed)
+            {
+                Ferry<PersistedData>.UnloadCargo();
+            }
+            alreadyParsed = false;
             ObjectLoader.FindAndSortAllExistingSewables();
 
             for (int i = 0; i < Sims3.Gameplay.Queries.GetObjects<PhoneSmart>().Length; i++)
@@ -390,7 +392,6 @@ namespace Lyralei
             {
                 if (computer != null)
                 {
-
                     AddInteractionsComputer(computer);
                 }
             }
@@ -400,7 +401,15 @@ namespace Lyralei
             {
                 Pattern.mStoredPatternsKeySettingsList.Add(ObjectLoader.sewableSettings[i].key);
             }
-            mPatternClubAlarm = AlarmManager.Global.AddAlarmDay(1f, DaysOfTheWeek.Thursday, GlobalOptionsSewingTable.SendPatterns, "Mailbox:  Pattern club", AlarmType.NeverPersisted, null);
+
+            foreach (KeyValuePair<ulong, bool> keyvalues in GlobalOptionsSewingTable.retrieveData.whoIsInPatternClub)
+            {
+                print("Re-assigned the mailbox alarm!");
+                SimDescription description = SimDescription.Find(keyvalues.Key);
+                Mailbox mailbox = Mailbox.GetMailboxOnLot(description.LotHome);
+                mailbox.AddAlarmDay(1f, DaysOfTheWeek.Thursday, GlobalOptionsSewingTable.SendPatterns, "Mailbox:  Pattern club " + description.mSimDescriptionId.ToString(), AlarmType.AlwaysPersisted);
+            }
+            //mPatternClubAlarm = AlarmManager.Global.AddAlarmDay(1f, DaysOfTheWeek.Thursday, GlobalOptionsSewingTable.SendPatterns, "Mailbox:  Pattern club", AlarmType.NeverPersisted, null);
 
             //mWearClothing = AlarmManager.Global.AddAlarmRepeating(24f, TimeUnit.Hours, WearGiftedClothing, 1f, TimeUnit.Days, "Wear gifted clothing", AlarmType.AlwaysPersisted, null);
 
@@ -409,177 +418,21 @@ namespace Lyralei
             EventTracker.AddListener(EventTypeId.kObjectStateChanged, new ProcessEventDelegate(OnObjectChanged));
         }
 
-        //public static void SetUpAlarmForGiftedItems()
-        //{
-        //    print("Setting up alarm");
-        //    foreach (KeyValuePair<Sim, List<Pattern>> keyvalues in retrieveData.mGiftableClothing)
-        //    {
-        //        alarmPatterns
-
-
-        //        // If sim exists and was saved properly, and there are more than one patterns...
-        //        if (keyvalues.Key != null && keyvalues.Value.Count >= 1)
-        //        {
-        //            print("Sim was found!");
-        //            SimDescription simdesc = keyvalues.Key.mSimDescription;
-        //            Sim sim = keyvalues.Key;
-
-        //            // get a random pattern from the list. Especially good if they have a few dozen patterns they can wear :p
-        //            Pattern randomPattern = RandomUtil.GetRandomObjectFromList(keyvalues.Value);
-        //            print(randomPattern.GetResourceKey().ToString());
-        //            // Check if the patterns age and gender meet with the stored sim..
-        //            if(randomPattern.mPatternInfo.mSimOutfit.Age == simdesc.Age && randomPattern.mPatternInfo.mSimOutfit.Gender == simdesc.Gender)
-        //            {
-        //                print("Found pattern for age and gender");
-        //                ApplyGiftedSewingsToOutfits(randomPattern.mPatternInfo.mSimOutfit, sim);
-        //                OutfitCategories currentOutfitCategory = sim.CurrentOutfitCategory;
-        //                sim.RefreshCurrentOutfit(true);
-        //                sim.SwitchToOutfitWithoutSpin(sim.CurrentOutfitCategory);
-        //                print("1 Changing time!");
-        //                //Sim.SwitchOutfitHelper mSwitchOutfitHelper = new Sim.SwitchOutfitHelper(sim, currentOutfitCategory, 0);
-        //                //if (mSwitchOutfitHelper != null)
-        //                //{
-        //                //    mSwitchOutfitHelper.Start();
-        //                //    mSwitchOutfitHelper.ChangeOutfit();
-        //                //    print("Changing time!");
-        //                //}
-        //            }
-        //        }
-        //        else
-        //        {
-        //            continue;
-        //        }
-        //    }
-        //}
-
-        //public static uint[] ClothingCategory =
-        //{
-        //    2,
-        //    4,
-        //    8,
-        //    16,
-        //    32,
-        //    256,
-        //};
-
-        ////indly stolen from face paint :p
-        //public static void ApplyGiftedSewingsToOutfits(CASPart casPart, Sim desc)
-        //{
-        //    OutfitCategoryMap outfits = desc.mSimDescription.Outfits;
-        //    OutfitCategories[] listOfCategories = desc.mSimDescription.ListOfCategories;
-
-        //    List<uint> possibleOutfits = new List<uint>();
-
-        //    foreach(uint cat in ClothingCategory)
-        //    {
-        //        if((casPart.CategoryFlags & cat) == cat)
-        //        {
-        //            print("Match made! CAT: " + cat.ToString());
-        //            possibleOutfits.Add(cat);
-        //        }
-        //    }
-        //    if (possibleOutfits.Count > 0)
-        //    {
-        //        uint randomed = RandomUtil.GetRandomObjectFromList(possibleOutfits);
-        //        print(randomed.ToString());
-        //        //ArrayList arrayList = ((Hashtable)outfits)[randomed] as ArrayList;
-        //        //if (arrayList != null)
-        //        //{
-        //        //    print(arrayList.Count.ToString());
-        //        //    SimBuilder simBuilder = new SimBuilder();
-        //        //    simBuilder.UseCompression = true;
-        //        //    simBuilder.Age = desc.mSimDescription.Age;
-        //        //    SimOutfit outfit = arrayList[0] as SimOutfit;
-        //        //    //SimOutfit outfit = ((Hashtable)outfits)[randomed] as SimOutfit;
-        //        //    print(simBuilder.ToString());
-        //        //    OutfitUtils.SetOutfit(simBuilder, outfit, desc.mSimDescription);
-        //        //    OutfitUtils.SetAutomaticModifiers(simBuilder);
-        //        //    simBuilder.RemoveParts(casPart.BodyType);
-        //        //    print(simBuilder.ToString());
-        //        //    //OutfitUtils.AddPartAndPreset(simBuilder, casPart, false);
-        //        //    //casPart.CategoryFlags = casPart.CategoryFlags - 0x01000000;
-        //        //    OutfitUtils.AddPartAndPreset(simBuilder, casPart, false);
-        //        //    print(simBuilder.ToString());
-        //        //    ResourceKey key = simBuilder.CacheOutfit(string.Format("MakeCategoryOutfitForSewableGiftShared_{0}_{1}_{2}", simBuilder.Age, desc.mSimDescription.FirstName, (OutfitCategories)randomed));
-        //        //    print(key.ToString());
-        //        //    SimOutfit outfit2;
-        //        //    if (OutfitUtils.TryGenerateSimOutfit(key, out outfit2))
-        //        //    {
-        //        //        desc.mSimDescription.RemoveOutfit((OutfitCategories)randomed, 0, true);
-        //        //        desc.mSimDescription.AddOutfit(outfit2, (OutfitCategories)randomed, 0);
-        //        //        print("MAde outfit");
-        //        //    }
-        //        //    print("Should now have added the item!");
-        //        //    simBuilder.Dispose();
-        //        //}
-
-        //        OutfitCategories cat = OutfitCategories.None;
-        //        switch (randomed)
-        //        {
-        //            case 2:
-        //                {
-        //                    cat = OutfitCategories.Everyday;
-        //                    break;
-        //                }
-        //            case 4:
-        //                {
-        //                    cat = OutfitCategories.Formalwear;
-        //                    break;
-        //                }
-        //            case 8:
-        //                {
-        //                    cat = OutfitCategories.Sleepwear;
-        //                    break;
-        //                }
-        //            case 16:
-        //                {
-        //                    cat = OutfitCategories.Swimwear;
-        //                    break;
-        //                }
-        //            case 32:
-        //                {
-        //                    cat = OutfitCategories.Athletic;
-        //                    break;
-        //                }
-        //            case 256:
-        //                {
-        //                    cat = OutfitCategories.Makeover;
-        //                    break;
-        //                }
-        //            default:
-        //                {
-        //                    cat = OutfitCategories.Everyday;
-        //                    break;
-        //                }
-        //        }
-
-        //        SimBuilder simBuilder = new SimBuilder();
-        //        simBuilder.UseCompression = true;
-        //        simBuilder.Age = desc.mSimDescription.Age;
-        //        SimOutfit outfit = desc.mSimDescription.GetOutfit(cat, 0);
-        //        OutfitUtils.SetOutfit(simBuilder, outfit, desc.mSimDescription);
-        //        OutfitUtils.SetAutomaticModifiers(simBuilder);
-        //        simBuilder.RemoveParts(casPart.BodyType);
-        //        OutfitUtils.AddPartAndPreset(simBuilder, casPart, false);
-        //        ResourceKey key = simBuilder.CacheOutfit(string.Format("MakeCategoryOutfitForSewableGiftShared_{0}_{1}_{2}", simBuilder.Age, desc.FirstName, cat));
-        //        SimOutfit outfit2;
-        //        if (OutfitUtils.TryGenerateSimOutfit(key, out outfit2))
-        //        {
-        //            desc.mSimDescription.RemoveOutfit(cat, 0, true);
-        //            desc.mSimDescription.AddOutfit(outfit2, cat, 0);
-        //        }
-        //        print("Should now have added the item!");
-        //        simBuilder.Dispose();
-        //    }
-        //}
-
         public static void OnWorldQuit(object sender, EventArgs e)
         {
-            AlarmManager.Global.RemoveAlarm(mPatternClubAlarm);
-            mPatternClubAlarm = AlarmHandle.kInvalidHandle;
+            Ferry<PersistedData>.LoadCargo();
+            foreach (KeyValuePair<ulong, bool> keyvalues in GlobalOptionsSewingTable.retrieveData.whoIsInPatternClub)
+            {
+                print("Re-assigned the mailbox alarm!");
+                SimDescription description = SimDescription.Find(keyvalues.Key);
+                Mailbox mailbox = Mailbox.GetMailboxOnLot(description.LotHome);
+                mailbox.RemoveAlarm(1f, DaysOfTheWeek.Thursday, GlobalOptionsSewingTable.SendPatterns, "Mailbox:  Pattern club " + description.mSimDescriptionId.ToString(), AlarmType.AlwaysPersisted);
+            }
+            //AlarmManager.Global.RemoveAlarm(mPatternClubAlarm);
+            //mPatternClubAlarm = AlarmHandle.kInvalidHandle;
 
-            AlarmManager.Global.RemoveAlarm(mWearClothing);
-            mWearClothing = AlarmHandle.kInvalidHandle;
+            //AlarmManager.Global.RemoveAlarm(mWearClothing);
+            //mWearClothing = AlarmHandle.kInvalidHandle;
         }
 
         public static void TriggerLesson(Lessons lesson, Sim sim)
@@ -634,7 +487,7 @@ namespace Lyralei
                             SimDescription desc = sim.SimDescription;
                             if (SewingSkill.isInPatternClub(desc))
                             {
-                                Pattern randomPattern = Pattern.DiscoverPatternForGlobalObjects(sim);
+                                Pattern randomPattern = Pattern.DiscoverPattern(sim);
                                 if (randomPattern != null)
                                 {
                                     mailboxOnLot.AddMail(randomPattern, false);
@@ -656,7 +509,7 @@ namespace Lyralei
             {
                 foreach (InteractionObjectPair interaction in computer.Interactions)
                 {
-                    if (interaction.InteractionDefinition.GetType() == BrowseSewingDIY.Singleton.GetType() || (interaction.InteractionDefinition.GetType() == JoinPatternClub.Singleton.GetType()) || (interaction.InteractionDefinition.GetType() == LeavePatternClub.Singleton.GetType()))
+                    if (interaction.InteractionDefinition.GetType() == BrowseSewingDIY.Singleton.GetType() || interaction.InteractionDefinition.GetType() == BuyClothingPatterns.Singleton.GetType() || (interaction.InteractionDefinition.GetType() == JoinPatternClub.Singleton.GetType()) || (interaction.InteractionDefinition.GetType() == LeavePatternClub.Singleton.GetType()))
                     {
                         return;
                     }
@@ -665,6 +518,7 @@ namespace Lyralei
                 computer.AddInteraction(JoinPatternClub.Singleton);
                 computer.AddInteraction(LeavePatternClub.Singleton);
                 computer.AddInteraction(BlogAboutSewing.Singleton);
+                computer.AddInteraction(BuyClothingPatterns.Singleton);
             }
         }
 

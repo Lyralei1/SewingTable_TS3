@@ -33,7 +33,7 @@ namespace Sims3.Gameplay.Objects.Lyralei
 		{
 			public override string GetInteractionName(Sim actor, Computer target, InteractionObjectPair iop)
 			{
-					return Localization.LocalizeString("Lyralei/Localized/JoinPatternClub:InteractionName", new object[0]);
+				return Localization.LocalizeString("Lyralei/Localized/JoinPatternClub:InteractionName", new object[0]);
 			}
 			public override bool Test(Sim a, Computer target, bool isAutonomous, ref GreyedOutTooltipCallback greyedOutTooltipCallback)
 			{
@@ -61,7 +61,7 @@ namespace Sims3.Gameplay.Objects.Lyralei
 				base.StandardExit();
 				return false;
 			}
-			mActor = Actor;
+			//mActor = Actor;
 			base.Target.StartVideo(Computer.VideoType.Browse);
 			base.BeginCommodityUpdates();
 			base.AnimateSim("WorkTyping");
@@ -74,13 +74,14 @@ namespace Sims3.Gameplay.Objects.Lyralei
 				}
 				else if (!GameUtils.IsFutureWorld())
 				{
-					base.Actor.UnpaidBills += kCost;
+					//base.Actor.UnpaidBills += kCost;
 					StyledNotification.Format format = new StyledNotification.Format(Localization.LocalizeString("Lyralei/Localized/NotEnoughMoney:Test", new object[0]), base.Actor.ObjectId, base.Target.ObjectId, StyledNotification.NotificationStyle.kGameMessageNegative);
 					StyledNotification.Show(format);
 				}
-				SimDescription ActorDesc = Actor.SimDescription;
-				GlobalOptionsSewingTable.mPatternClubAlarm = AlarmManager.Global.AddAlarmDay(1f, DaysOfTheWeek.Thursday, GlobalOptionsSewingTable.SendPatterns, "Mailbox:  Pattern club", AlarmType.NeverPersisted, null);
-				GlobalOptionsSewingTable.retrieveData.whoIsInPatternClub.Add(ActorDesc, true);
+                Mailbox mailbox = Mailbox.GetMailboxOnLot(base.Actor.LotHome);
+
+                mailbox.AddAlarmDay(1f, DaysOfTheWeek.Thursday, GlobalOptionsSewingTable.SendPatterns, "Mailbox:  Pattern club " + base.Actor.mSimDescription.mSimDescriptionId.ToString(), AlarmType.AlwaysPersisted);
+				GlobalOptionsSewingTable.retrieveData.whoIsInPatternClub.Add(Actor.SimDescription.mSimDescriptionId, true);
 				base.Actor.ShowTNSIfSelectable(Localization.LocalizeString("Lyralei/Localized/JoinedPatternClub:InteractionName", new object[0]), StyledNotification.NotificationStyle.kGameMessagePositive);
 			}
 			base.Target.StopComputing(this, Computer.StopComputingAction.TurnOff, false);
@@ -89,4 +90,67 @@ namespace Sims3.Gameplay.Objects.Lyralei
 			return true;
 		}
 	}
+
+    public class BuyClothingPatterns : Computer.ComputerInteraction
+    {
+        public class Definition : InteractionDefinition<Sim, Computer, BuyClothingPatterns>
+        {
+            public override string GetInteractionName(Sim actor, Computer target, InteractionObjectPair iop)
+            {
+                return Localization.LocalizeString("Lyralei/Localized/BuyClothingPattern:InteractionName", new object[0]);
+            }
+            public override bool Test(Sim a, Computer target, bool isAutonomous, ref GreyedOutTooltipCallback greyedOutTooltipCallback)
+            {
+                SewingSkill sewingSkill = a.SkillManager.GetElement(SewingSkill.kSewingSkillGUID) as SewingSkill;
+                if (a.SkillManager.HasElement(SewingSkill.kSewingSkillGUID) && target.IsComputerUsable(a, true, false, isAutonomous) && sewingSkill.SkillLevel > 6)
+                {
+                    return a.FamilyFunds >= kCost;
+                }
+                return false;
+            }
+        }
+
+        public static InteractionDefinition Singleton = new Definition();
+
+        [TunableComment("Range:  Simoleons.  Description:  Lifetime membership cost of joining the pattern club.")]
+        [Tunable]
+        public static int kCost = 200;
+
+        public Sim mActor;
+
+        public override bool Run()
+        {
+            base.StandardEntry();
+            if (!base.Target.StartComputing(this, SurfaceHeight.Table, true))
+            {
+                base.StandardExit();
+                return false;
+            }
+            mActor = Actor;
+            base.Target.StartVideo(Computer.VideoType.Browse);
+            base.BeginCommodityUpdates();
+            base.AnimateSim("WorkTyping");
+            bool flag = TwoButtonDialog.Show(Localization.LocalizeString("Lyralei/Localized/BuyClothingPatternDialog:InteractionName"), Localization.LocalizeString("Ui/Caption/Global:Yes", new object[0]), Localization.LocalizeString("Ui/Caption/Global:No", new object[0]));
+            if (flag)
+            {
+                if (base.Actor.FamilyFunds >= kCost)
+                {
+                    base.Actor.ModifyFunds(-kCost);
+                }
+                else if (!GameUtils.IsFutureWorld())
+                {
+                    //base.Actor.UnpaidBills += kCost;
+                    StyledNotification.Format format = new StyledNotification.Format(Localization.LocalizeString("Lyralei/Localized/NotEnoughMoney:Test", new object[0]), base.Actor.ObjectId, base.Target.ObjectId, StyledNotification.NotificationStyle.kGameMessageNegative);
+                    StyledNotification.Show(format);
+                }
+                Pattern pattern = Pattern.GetRandomClothingPattern(base.Actor);
+                SimDescription ActorDesc = Actor.SimDescription;
+                base.Actor.ShowTNSIfSelectable(Localization.LocalizeString("Lyralei/Localized/GotPattern:InteractionName", new object[0]) + pattern.mPatternInfo.Name, StyledNotification.NotificationStyle.kGameMessagePositive);
+            }
+            base.Target.StopComputing(this, Computer.StopComputingAction.TurnOff, false);
+            base.EndCommodityUpdates(flag);
+            base.StandardExit();
+            return true;
+        }
+    }
 }

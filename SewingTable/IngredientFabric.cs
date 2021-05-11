@@ -32,7 +32,13 @@ namespace Sims3.Gameplay.Objects.Lyralei
 					typeof(SewingTable)
 				})
 			});
-			base.AddInteraction(PutInInventory.Singleton);
+            base.ItemComp.mValidInventories = new Type[]
+            {
+               typeof(Sim),
+               typeof(SewingTable),
+            };
+
+            base.AddInteraction(PutInInventory.Singleton);
 			base.OnStartup();
 		}
 		
@@ -406,8 +412,9 @@ namespace Sims3.Gameplay.Objects.Lyralei
 						}
 					}						
 				}
+                return true;
 			}
-			return false;
+            return false;
 		}
 		
 		public override bool ExportContent(ResKeyTable resKeyTable, ObjectIdTable objIdTable, IPropertyStreamWriter writer)

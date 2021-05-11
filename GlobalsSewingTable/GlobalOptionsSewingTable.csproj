@@ -69,6 +69,7 @@
     <Compile Include="BlogAboutSewing.cs" />
     <Compile Include="BrowseSewableDIY.cs" />
     <Compile Include="CreateClothingSelector.cs" />
+    <Compile Include="Ferry.cs" />
     <Compile Include="GottaBlogAboutSewing.cs" />
     <Compile Include="JoinPatternClub.cs" />
     <Compile Include="LeavePatternClub.cs" />

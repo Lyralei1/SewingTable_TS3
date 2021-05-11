@@ -130,7 +130,6 @@ namespace Sims3.Gameplay.Skills.Lyralei
                 mSkill = skill;
             }
         }
-
         public bool mMasterSewerIsNew = true;
 
         public class MasterSewer : ILifetimeOpportunity
@@ -165,7 +164,7 @@ namespace Sims3.Gameplay.Skills.Lyralei
             {
                 get
                 {
-                    return mSkill.IsMasterSewer();
+                    return IsMasterSewer();
                 }
             }
 
@@ -184,6 +183,22 @@ namespace Sims3.Gameplay.Skills.Lyralei
             public MasterSewer(SewingSkill skill)
             {
                 mSkill = skill;
+            }
+            public bool IsMasterSewer()
+            {
+                Sim createdSim = mSkill.SkillOwner.CreatedSim;
+                bool Level10Reached = mSkill.ReachedMaxLevel();
+
+                if (createdSim.IsSelectable)
+                {
+                    if (Level10Reached && mSkill.mPatternCount == Pattern.mStoredPatternsKeySettingsList.Count && mSkill.mProjectCount == 100)
+                    //if (Level10Reached && mSkill.mProjectCount == 100 && (mSkill.mPatternCount == listAmount))
+                    {
+                        return true;
+                    }
+                    return false;
+                }
+                return false;
             }
         }
 
@@ -390,25 +405,8 @@ namespace Sims3.Gameplay.Skills.Lyralei
 
         public int CalculatePatternPercentage()
         {
-            return mPatternPercentage = mPatternCount * 100 / Pattern.mStoredPatternsKeySettingsList.Count;
-        }
-
-        public SewingSkill mSkill;
-
-        public bool IsMasterSewer()
-        {
-            Sim createdSim = base.SkillOwner.CreatedSim;
-            bool Level10Reached = base.ReachedMaxLevel();
-
-            if (createdSim.IsSelectable)
-            {
-                if(Level10Reached && mSkill.mPatternCount == Pattern.mStoredPatternsKeySettingsList.Count && mSkill.mProjectCount == 100)
-                {
-                    return true;
-                }
-                return false;
-            }
-            return false;
+            mPatternPercentage = (int)((double)mPatternCount * 100 / Pattern.mStoredPatternsKeySettingsList.Count);
+            return mPatternPercentage;
         }
 
         // Here we add it later for discovering stuff through a computer/Magazine
@@ -424,7 +422,7 @@ namespace Sims3.Gameplay.Skills.Lyralei
 				{
 					if(RandomUtil.RandomChance(100f))
 					{
-						Pattern randomPattern = Pattern.DiscoverPatternForGlobalObjects(createdSim);
+						Pattern randomPattern = Pattern.DiscoverPattern(createdSim);
 						if(randomPattern != null)
 						{
 							createdSim.Inventory.TryToAdd(randomPattern);
@@ -438,7 +436,7 @@ namespace Sims3.Gameplay.Skills.Lyralei
 		
 		public static bool isInPatternClub(SimDescription desc)
 		{
-			if(GlobalOptionsSewingTable.retrieveData.whoIsInPatternClub.ContainsKey(desc) && GlobalOptionsSewingTable.retrieveData.whoIsInPatternClub.ContainsValue(true))
+			if(GlobalOptionsSewingTable.retrieveData.whoIsInPatternClub.ContainsKey(desc.mSimDescriptionId) && GlobalOptionsSewingTable.retrieveData.whoIsInPatternClub.ContainsValue(true))
 			{
 				return true;
 			}
@@ -448,11 +446,11 @@ namespace Sims3.Gameplay.Skills.Lyralei
 			}
 		}
 
-        public static bool HasAlreadyDiscoveredThis(SimDescription sim, ResourceKey reskey)
+        public static bool HasAlreadyDiscoveredThis(ulong sim, ResourceKey reskey)
         {
-            foreach(KeyValuePair<SimDescription, List<ResourceKey>> keyvalues in GlobalOptionsSewingTable.retrieveData.mDiscoveredObjects)
+            foreach(KeyValuePair<ulong, List<ResourceKey>> keyvalues in GlobalOptionsSewingTable.retrieveData.mDiscoveredObjectsNEWEST)
             {
-                SimDescription simmie = keyvalues.Key;
+                ulong simmie = keyvalues.Key;
                 List<ResourceKey> storedKeys = keyvalues.Value;
 
                 if(sim == simmie)
@@ -474,11 +472,11 @@ namespace Sims3.Gameplay.Skills.Lyralei
         }
 
 		
-		public static void AddItemsToDiscoveredList(SimDescription sim, ResourceKey reskey)
+		public static void AddItemsToDiscoveredList(ulong sim, ResourceKey reskey)
 		{
-            foreach (KeyValuePair<SimDescription, List<ResourceKey>> keyvalues in GlobalOptionsSewingTable.retrieveData.mDiscoveredObjects)
+            foreach (KeyValuePair<ulong, List<ResourceKey>> keyvalues in GlobalOptionsSewingTable.retrieveData.mDiscoveredObjectsNEWEST)
             {
-                SimDescription simmie = keyvalues.Key;
+                ulong simmie = keyvalues.Key;
                 List<ResourceKey> storedKeys = keyvalues.Value;
 
                 if (sim == simmie)
@@ -497,7 +495,7 @@ namespace Sims3.Gameplay.Skills.Lyralei
                 else
                 {
                     storedKeys.Add(reskey);
-                    GlobalOptionsSewingTable.retrieveData.mDiscoveredObjects.Add(sim, storedKeys);
+                    GlobalOptionsSewingTable.retrieveData.mDiscoveredObjectsNEWEST.Add(sim, storedKeys);
                     return;
                 }
             }
@@ -507,6 +505,7 @@ namespace Sims3.Gameplay.Skills.Lyralei
         {
             base.MergeTravelData(skill);
             SewingSkill sewingSkill = skill as SewingSkill;
+            print(sewingSkill.mPatternCount.ToString());
             if (sewingSkill != null)
             {
                 mProjectCount = sewingSkill.mProjectCount;
@@ -515,7 +514,10 @@ namespace Sims3.Gameplay.Skills.Lyralei
                 mBlogPosts = sewingSkill.mBlogPosts;
             }
         }
-
+        public static void print(string text)
+        {
+            SimpleMessageDialog.Show("Lyralei's Sewing Table:", text);
+        }
         public override void CreateSkillJournalInfo()
         {
             mTrackedStats = new List<ITrackedStat>();

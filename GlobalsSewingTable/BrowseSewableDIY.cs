@@ -67,7 +67,7 @@ namespace Sims3.Gameplay.Objects.Lyralei
 			base.Target.StopComputing(this, Computer.StopComputingAction.TurnOff, false);
 			if(RandomUtil.RandomChance(kChanceDiscoverPatternComputer))
 			{
-                Pattern.DiscoverPatternForGlobalObjects(base.Actor);
+                Pattern.DiscoverPattern(base.Actor);
                 Actor.ShowTNSIfSelectable(Localization.LocalizeString("Lyralei/Localized/BrowseWebForPatternsSuccess:InteractionName", new object[0]), StyledNotification.NotificationStyle.kSimTalking);
             }
             sewingSkill.StopSkillGain();

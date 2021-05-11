@@ -11,6 +11,7 @@ using Lyralei;
 using Sims3.Gameplay.Actors;
 using Sims3.Gameplay.Autonomy;
 using Sims3.Gameplay.CAS;
+using Sims3.Gameplay.Core;
 using Sims3.Gameplay.Interactions;
 using Sims3.Gameplay.Objects.Electronics;
 using Sims3.Gameplay.Skills.Lyralei;
@@ -62,12 +63,13 @@ namespace Sims3.Gameplay.Objects.Lyralei
 			base.AnimateSim("WorkTyping");
 			if (TwoButtonDialog.Show(Localization.LocalizeString("Lyralei/Localized/LeavePatternClubDesc:InteractionName", new object[0]), Localization.LocalizeString("Lyralei/Localized/LeavePatternClubYES:InteractionName", new object[0]), Localization.LocalizeString("Lyralei/Localized/LeavePatternClubNO:InteractionName", new object[0])))
 			{
-				SimDescription ActorDesc = Actor.SimDescription;
-				if(GlobalOptionsSewingTable.retrieveData.whoIsInPatternClub.ContainsKey(ActorDesc))
+				SimDescription ActorDesc = base.Actor.SimDescription;
+				if(GlobalOptionsSewingTable.retrieveData.whoIsInPatternClub.ContainsKey(ActorDesc.mSimDescriptionId))
 				{
-					GlobalOptionsSewingTable.retrieveData.whoIsInPatternClub.Remove(ActorDesc);
+					GlobalOptionsSewingTable.retrieveData.whoIsInPatternClub.Remove(ActorDesc.mSimDescriptionId);
 				}
-				AlarmManager.Global.RemoveAlarm(GlobalOptionsSewingTable.mPatternClubAlarm);
+                Mailbox mailbox = Mailbox.GetMailboxOnLot(base.Actor.LotHome);
+                mailbox.RemoveAlarm(GlobalOptionsSewingTable.mPatternClubAlarm);
 				GlobalOptionsSewingTable.mPatternClubAlarm = AlarmHandle.kInvalidHandle;
 			}
 			base.Target.StopComputing(this, Computer.StopComputingAction.TurnOff, false);

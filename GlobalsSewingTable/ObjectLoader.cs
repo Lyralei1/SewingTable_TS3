@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Text;
 using System.Xml;
 using Lyralei;
+using Sims3.Gameplay.Objects.Lyralei;
 using Sims3.Gameplay.Skills.Lyralei;
 using Sims3.Gameplay.Utilities;
 using Sims3.SimIFace;
@@ -22,6 +23,8 @@ namespace Sims3.Gameplay.Lyralei
         public static List<ResourceKey> HardSewablesList = new List<ResourceKey>();
         public static List<ResourceKey> HarderSewablesList = new List<ResourceKey>();
         public static List<ResourceKey> MagicHarderSewablesList = new List<ResourceKey>();
+
+        public static List<ResourceKey> mStoredClothingPattern = new List<ResourceKey>();
 
         public static ulong[] AllObjectKeys = ScriptCore.Simulator.Simulator_GetAllSimulationObjectKeysImpl();
 
@@ -158,53 +161,69 @@ namespace Sims3.Gameplay.Lyralei
             ResourceKey sewableKey = new ResourceKey();
 
             //Filter out our defined easy sewable objects
-            for (int i = 0; i < easySewables.Count; i++)
+            if (EasySewablesList.Count == 0)
             {
-                //Check for easy
-                if (Sims3.SimIFace.Simulator.CountResources(easySewables[i]) > 0)
+                for (int i = 0; i < easySewables.Count; i++)
                 {
-                    //GlobalOptionsSewingTable.print(easySewables[i].ToString());
-                    EasySewablesList.Add(easySewables[i]);
+                    //Check for easy
+                    if (Sims3.SimIFace.Simulator.CountResources(easySewables[i]) > 0)
+                    {
+                        //GlobalOptionsSewingTable.print(easySewables[i].ToString());
+
+                        EasySewablesList.Add(easySewables[i]);
+                    }
                 }
             }
             //Filter out our defined medium sewable objects
-            for (int i = 0; i < mediumSewables.Count; i++)
+            if (MediumSewablesList.Count == 0)
             {
-                //Check for easy
-                if (Sims3.SimIFace.Simulator.CountResources(mediumSewables[i]) > 0)
+                for (int i = 0; i < mediumSewables.Count; i++)
                 {
-                    //GlobalOptionsSewingTable.print(mediumSewables[i].ToString());
-                    MediumSewablesList.Add(mediumSewables[i]);
+                    //Check for easy
+                    if (Sims3.SimIFace.Simulator.CountResources(mediumSewables[i]) > 0)
+                    {
+                        //GlobalOptionsSewingTable.print(mediumSewables[i].ToString());
+                        MediumSewablesList.Add(mediumSewables[i]);
+                    }
                 }
             }
 
             //Filter out our defined hard sewable objects
-            for (int i = 0; i < hardSewables.Count; i++)
+            if (HardSewablesList.Count == 0)
             {
-                //Check for easy
-                if (Sims3.SimIFace.Simulator.CountResources(hardSewables[i]) > 0)
+                for (int i = 0; i < hardSewables.Count; i++)
                 {
-                    HardSewablesList.Add(hardSewables[i]);
+                    //Check for easy
+                    if (Sims3.SimIFace.Simulator.CountResources(hardSewables[i]) > 0)
+                    {
+                        HardSewablesList.Add(hardSewables[i]);
+                    }
                 }
             }
 
             //Filter out our defined hardest sewable objects
-            for (int i = 0; i < hardestSewables.Count; i++)
+            if (HarderSewablesList.Count == 0)
             {
-                //Check for easy
-                if (Sims3.SimIFace.Simulator.CountResources(hardestSewables[i]) > 0)
+                for (int i = 0; i < hardestSewables.Count; i++)
                 {
-                    HarderSewablesList.Add(hardestSewables[i]);
+                    //Check for easy
+                    if (Sims3.SimIFace.Simulator.CountResources(hardestSewables[i]) > 0)
+                    {
+                        HarderSewablesList.Add(hardestSewables[i]);
+                    }
                 }
             }
 
             //Filter out our defined hardest MAGIC sewable objects
-            for (int i = 0; i < magicHardestSewables.Count; i++)
+            if (MagicHarderSewablesList.Count == 0)
             {
-                //Check for easy
-                if (Sims3.SimIFace.Simulator.CountResources(magicHardestSewables[i]) > 0)
+                for (int i = 0; i < magicHardestSewables.Count; i++)
                 {
-                    MagicHarderSewablesList.Add(magicHardestSewables[i]);
+                    //Check for easy
+                    if (Sims3.SimIFace.Simulator.CountResources(magicHardestSewables[i]) > 0)
+                    {
+                        MagicHarderSewablesList.Add(magicHardestSewables[i]);
+                    }
                 }
             }
 
@@ -253,34 +272,37 @@ namespace Sims3.Gameplay.Lyralei
 
         public static void GetAllXMLSettingsForSewables()
         {
-            // Get count/length of all objects in the game
-            int num = AllObjectKeys.Length;
-            ResourceKey[] array2 = new ResourceKey[num];
-
-            // Read all OBJDs and figure out if the XML resourcefor it exists to read the sewable data
-            foreach (ulong keys in AllObjectKeys)
+            if (dictSettings.Count <= 0 && sewableSettings.Count <= 0)
             {
-                ResourceKey XMLKey = new ResourceKey(keys, 0x0333406C, 0x7354C1FC);
-                uint count = Sims3.SimIFace.Simulator.CountResources(XMLKey);
-                if (count > 0 && XMLKey != ResourceKey.kInvalidResourceKey)
-                {
-                    ReadSettingData(XMLKey);
-                }
-            }
+                // Get count/length of all objects in the game
+                int num = AllObjectKeys.Length;
+                ResourceKey[] array2 = new ResourceKey[num];
 
-            // Read CASPs info and figure out if the XML resource for it exists.
-            KeySearch keySearch = new KeySearch(0x034AEECB);
-            foreach (ResourceKey item in keySearch)
-            {
-                ResourceKey XMLKey1 = new ResourceKey(item.InstanceId, 0x0333406C, 0x7354C1FC);
-                uint count = Sims3.SimIFace.Simulator.CountResources(XMLKey1);
-                if (count > 0 && XMLKey1 != ResourceKey.kInvalidResourceKey)
+                // Read all OBJDs and figure out if the XML resourcefor it exists to read the sewable data
+                foreach (ulong keys in AllObjectKeys)
                 {
-                    // Found the XML file, now we want to extract the data inside the XML
-                    ReadSettingData(XMLKey1);
+                    ResourceKey XMLKey = new ResourceKey(keys, 0x0333406C, 0x7354C1FC);
+                    uint count = Sims3.SimIFace.Simulator.CountResources(XMLKey);
+                    if (count > 0 && XMLKey != ResourceKey.kInvalidResourceKey)
+                    {
+                        ReadSettingData(XMLKey);
+                    }
                 }
+
+                // Read CASPs info and figure out if the XML resource for it exists.
+                KeySearch keySearch = new KeySearch(0x034AEECB);
+                foreach (ResourceKey item in keySearch)
+                {
+                    ResourceKey XMLKey1 = new ResourceKey(item.InstanceId, 0x0333406C, 0x7354C1FC);
+                    uint count = Sims3.SimIFace.Simulator.CountResources(XMLKey1);
+                    if (count > 0 && XMLKey1 != ResourceKey.kInvalidResourceKey)
+                    {
+                        // Found the XML file, now we want to extract the data inside the XML
+                        ReadSettingData(XMLKey1);
+                    }
+                }
+                keySearch.Reset();
             }
-            keySearch.Reset();
             // GlobalOptionsSewingTable.print(st.ToString());
         }
         public static List<sewableSetting> sewableSettings = new List<sewableSetting>();
@@ -292,127 +314,132 @@ namespace Sims3.Gameplay.Lyralei
             ResourceKey empty = new ResourceKey(0, 0, 0);
             try
             {
-                string data = Sims3.SimIFace.Simulator.LoadXMLString(xmlKey);
-                if (data == null)
-                {
-                    GlobalOptionsSewingTable.print("Creator Debugger: XML Sewables settings are empty/Don't exist! Try the following: \n 1. Use the Instance of your OBJD/CASP and apply that to your XML's instance. \n 2. Make sure that the XML actually exists. \n 3. That the XML file has the group 0x7354C1FC.");
-                }
-                string[] SettingElements = data.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
-                int currentEntry = sewableSettings.Count - 1;
-                int currentLine = 0;
-
-                foreach (string element in SettingElements)
-                {
-                    if (element == "----")
+                    string data = Sims3.SimIFace.Simulator.LoadXMLString(xmlKey);
+                    if (data == null)
                     {
-                        currentEntry++;
-                        currentLine = 0;
-                        sewableSettings.Add(new sewableSetting());
+                        GlobalOptionsSewingTable.print("Creator Debugger: XML Sewables settings are empty/Don't exist! Try the following: \n 1. Use the Instance of your OBJD/CASP and apply that to your XML's instance. \n 2. Make sure that the XML actually exists. \n 3. That the XML file has the group 0x7354C1FC.");
                     }
-                    if (currentLine == 1)
+                    string[] SettingElements = data.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
+                    int currentEntry = sewableSettings.Count - 1;
+                    int currentLine = 0;
+
+                    foreach (string element in SettingElements)
                     {
-                        sewableSettings[currentEntry].key = ResourceKey.FromString(element);
-                        if (sewableSettings[currentEntry].key == empty || sewableSettings[currentEntry].key == ResourceKey.kInvalidResourceKey)
+                        if (element == "----")
                         {
-                            GlobalOptionsSewingTable.print("Creator Debugger: \n Oops, seems like the OBJD key is incorrect or doesn't exist inside your package/game. Therefore, the mod can't find it! :/ What you entered was: " + sewableSettings[currentEntry].key.ToString() + "\n Make sure of the following: \n 1. Your OBJD Key is correct. \n 2. That, inside S3PE, you highlighted the OBJD and right+clicked and then used the 'Copy resourceKey' Function. And then pasted this inside 'XML_Lyralei_Settings_Sewables'. \n \n \n If all that fails, make sure to contact me (Lyralei at MTS or Greenplumbboblover at tumblr)");
+                            currentEntry++;
+                            currentLine = 0;
+                            sewableSettings.Add(new sewableSetting());
                         }
-                    }
-                    if (currentLine == 2)
-                    {
-                        string[] fabrics = element.Split(',');
-                        for (int i = 0; i < fabrics.Length; i++)
+                        if (currentLine == 1)
                         {
-                            string type1 = fabrics[i].ToUpper().Trim();
-
-                            // Knitted, Cotton, Satin, Leather, Denim, Synthetic
-                            switch (type1)
+                            sewableSettings[currentEntry].key = ResourceKey.FromString(element);
+                            if (sewableSettings[currentEntry].key == empty || sewableSettings[currentEntry].key == ResourceKey.kInvalidResourceKey)
                             {
-                                case "KNITTED":
-                                    sewableSettings[currentEntry].typeFabric.Add(SewingSkill.FabricType.Knitted);
-                                    break;
-                                case "COTTON":
-                                    sewableSettings[currentEntry].typeFabric.Add(SewingSkill.FabricType.Cotton);
-                                    break;
-                                case "SATIN":
-                                    sewableSettings[currentEntry].typeFabric.Add(SewingSkill.FabricType.Satin);
-                                    break;
-                                case "LEATHER":
-                                    sewableSettings[currentEntry].typeFabric.Add(SewingSkill.FabricType.Leather);
-                                    break;
-                                case "DENIM":
-                                    sewableSettings[currentEntry].typeFabric.Add(SewingSkill.FabricType.Denim);
-                                    break;
-                                case "SYNTHETIC":
-                                    sewableSettings[currentEntry].typeFabric.Add(SewingSkill.FabricType.Synthetic);
-                                    break;
-                                // FOR CC CREATORS - An error	
-                                default:
-                                    GlobalOptionsSewingTable.print("Creator Debugger: \n The fabric you used in " + data.ToString() + " isn't correct. What you entered was: " + type1.ToString() + "\n Make sure of the following: \n 1. You've formatted them Uppercase-like (i.e 'Knitted' or 'Cotton', etc) \n 2. It being an existing fabric type inside the mod. Either: (Knitted, Cotton, Satin, Leather, Denim, Synthetic). \n 3. Check for any typos! :) \n 4. If you have multiple, that you differentiate them with comma's ',' without any spaces!. \n \n If all that fails, make sure to contact me (Lyralei at MTS or Greenplumbboblover at tumblr)");
-                                    break;
+                                GlobalOptionsSewingTable.print("Creator Debugger: \n Oops, seems like the OBJD key is incorrect or doesn't exist inside your package/game. Therefore, the mod can't find it! :/ What you entered was: " + sewableSettings[currentEntry].key.ToString() + "\n Make sure of the following: \n 1. Your OBJD Key is correct. \n 2. That, inside S3PE, you highlighted the OBJD and right+clicked and then used the 'Copy resourceKey' Function. And then pasted this inside 'XML_Lyralei_Settings_Sewables'. \n \n \n If all that fails, make sure to contact me (Lyralei at MTS or Greenplumbboblover at tumblr)");
                             }
                         }
-                    }
-                    if (currentLine == 3)
-                    {
-                        if (element.Contains("isMagicProject="))
+                        if (currentLine == 2)
                         {
-                            string strBool = element.Replace("isMagicProject=", "");
-                            bool ToBoolean = Convert.ToBoolean(strBool);
-                            sewableSettings[currentEntry].isMagicProject = ToBoolean;
-                        }
-                    }
-                    if (currentLine == 4)
-                    {
-                        if (element.Contains("isDiscoverableOnly="))
-                        {
-                            string strBool = element.Replace("isDiscoverableOnly=", "");
-                            bool ToBoolean = Convert.ToBoolean(strBool);
-                            sewableSettings[currentEntry].isDiscoverableOnly = ToBoolean;
-                        }
-                    }
-                    if (currentLine == 5)
-                    {
-                        if (element.Contains("amountOfFabricToRemove="))
-                        {
-                            string strInt = element.Replace("amountOfFabricToRemove=", "");
-                            int ToInt = Convert.ToInt16(strInt);
-                            sewableSettings[currentEntry].amountRemoveFabric = ToInt;
+                            string[] fabrics = element.Split(',');
+                            for (int i = 0; i < fabrics.Length; i++)
+                            {
+                                string type1 = fabrics[i].ToUpper().Trim();
 
+                                // Knitted, Cotton, Satin, Leather, Denim, Synthetic
+                                switch (type1)
+                                {
+                                    case "KNITTED":
+                                        sewableSettings[currentEntry].typeFabric.Add(SewingSkill.FabricType.Knitted);
+                                        break;
+                                    case "COTTON":
+                                        sewableSettings[currentEntry].typeFabric.Add(SewingSkill.FabricType.Cotton);
+                                        break;
+                                    case "SATIN":
+                                        sewableSettings[currentEntry].typeFabric.Add(SewingSkill.FabricType.Satin);
+                                        break;
+                                    case "LEATHER":
+                                        sewableSettings[currentEntry].typeFabric.Add(SewingSkill.FabricType.Leather);
+                                        break;
+                                    case "DENIM":
+                                        sewableSettings[currentEntry].typeFabric.Add(SewingSkill.FabricType.Denim);
+                                        break;
+                                    case "SYNTHETIC":
+                                        sewableSettings[currentEntry].typeFabric.Add(SewingSkill.FabricType.Synthetic);
+                                        break;
+                                    // FOR CC CREATORS - An error	
+                                    default:
+                                        GlobalOptionsSewingTable.print("Creator Debugger: \n The fabric you used in " + data.ToString() + " isn't correct. What you entered was: " + type1.ToString() + "\n Make sure of the following: \n 1. You've formatted them Uppercase-like (i.e 'Knitted' or 'Cotton', etc) \n 2. It being an existing fabric type inside the mod. Either: (Knitted, Cotton, Satin, Leather, Denim, Synthetic). \n 3. Check for any typos! :) \n 4. If you have multiple, that you differentiate them with comma's ',' without any spaces!. \n \n If all that fails, make sure to contact me (Lyralei at MTS or Greenplumbboblover at tumblr)");
+                                        break;
+                                }
+                            }
                         }
-                    }
-                    if (currentLine == 6)
-                    {
-                        if (element.Contains("isClothing="))
+                        if (currentLine == 3)
                         {
-                            string strBool = element.Replace("isClothing=", "");
-                            bool ToBoolean = Convert.ToBoolean(strBool);
-                            sewableSettings[currentEntry].isClothing = ToBoolean;
+                            if (element.Contains("isMagicProject="))
+                            {
+                                string strBool = element.Replace("isMagicProject=", "");
+                                bool ToBoolean = Convert.ToBoolean(strBool);
+                                sewableSettings[currentEntry].isMagicProject = ToBoolean;
+                            }
                         }
-                        else
+                        if (currentLine == 4)
                         {
-                            sewableSettings[currentEntry].isClothing = false;
+                            if (element.Contains("isDiscoverableOnly="))
+                            {
+                                string strBool = element.Replace("isDiscoverableOnly=", "");
+                                bool ToBoolean = Convert.ToBoolean(strBool);
+                                sewableSettings[currentEntry].isDiscoverableOnly = ToBoolean;
+                            }
                         }
-                    }
-                    if (currentLine == 7)
-                    {
-                        if (element.Contains("ClothingName="))
+                        if (currentLine == 5)
                         {
-                            string name = element.Replace("ClothingName=", "");
-                            
-                            sewableSettings[currentEntry].clothingName = name;
+                            if (element.Contains("amountOfFabricToRemove="))
+                            {
+                                string strInt = element.Replace("amountOfFabricToRemove=", "");
+                                int ToInt = Convert.ToInt16(strInt);
+                                sewableSettings[currentEntry].amountRemoveFabric = ToInt;
+
+                            }
                         }
-                        else
+                        if (currentLine == 6)
                         {
-                            sewableSettings[currentEntry].clothingName = "";
+                            if (element.Contains("isClothing="))
+                            {
+                                string strBool = element.Replace("isClothing=", "");
+                                bool ToBoolean = Convert.ToBoolean(strBool);
+                                sewableSettings[currentEntry].isClothing = ToBoolean;
+                                if(ToBoolean)
+                                {
+                                    mStoredClothingPattern.Add(sewableSettings[currentEntry].key);
+                                }
+                            }
+                            else
+                            {
+                                sewableSettings[currentEntry].isClothing = false;
+                            }
                         }
+                        if (currentLine == 7)
+                        {
+                            if (element.Contains("ClothingName="))
+                            {
+                                string name = element.Replace("ClothingName=", "");
+
+                                sewableSettings[currentEntry].clothingName = name;
+                            }
+                            else
+                            {
+                                sewableSettings[currentEntry].clothingName = "";
+                            }
+                        }
+                        // Check for dupes
+                        if (!dictSettings.ContainsKey(sewableSettings[currentEntry].key))
+                        {
+                            dictSettings.Add(sewableSettings[currentEntry].key, sewableSettings[currentEntry]);
+                        }
+                        currentLine++;
                     }
-                    // Check for dupes
-                    if (!dictSettings.ContainsKey(sewableSettings[currentEntry].key))
-                    {
-                        dictSettings.Add(sewableSettings[currentEntry].key, sewableSettings[currentEntry]);
-                    }
-                    currentLine++;
-                }
+                
             }
             catch (Exception ex)
             {

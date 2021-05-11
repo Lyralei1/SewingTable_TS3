@@ -21,8 +21,6 @@ namespace Sims3.Gameplay.Objects.Lyralei
 {
     public class Pattern : GameObject, IExportableContent
     {
-        //Mainly used for the practise interaction
-        public static List<ResourceKey> mSavedCachedObjectsForLoopList = new List<ResourceKey>();
         public static List<ResourceKey> mStoredPatternsKeySettingsList = new List<ResourceKey>();
 
         public class PatternNameComponent : NameComponent
@@ -78,7 +76,6 @@ namespace Sims3.Gameplay.Objects.Lyralei
             public string mClothingName;
 
             public bool mWasPatternGifted;
-
 
             public PatternObjectInitParams()
             {
@@ -225,9 +222,9 @@ namespace Sims3.Gameplay.Objects.Lyralei
                     typeof(Sim),
                     typeof(Mailbox),
                     typeof(GameObject),
-					//typeof(SewingTable)
 				})
             });
+
             base.AddInteraction(PutInInventory.Singleton);
             base.OnStartup();
         }
@@ -237,99 +234,98 @@ namespace Sims3.Gameplay.Objects.Lyralei
             return false;
         }
 
-        public static Pattern DiscoverPatternStartUp()
-        {
-            ResourceKey getPattern = new ResourceKey();
-            PatternInfo mPatternInfoInit = new PatternInfo();
-            List<ResourceKey> checkIfAdded = new List<ResourceKey>();
+        //public static Pattern DiscoverPatternStartUp()
+        //{
+        //    ResourceKey getPattern = new ResourceKey();
+        //    PatternInfo mPatternInfoInit = new PatternInfo();
+        //    List<ResourceKey> checkIfAdded = new List<ResourceKey>();
 
-            do
-            {
-                getPattern = RandomUtil.GetRandomObjectFromList(ObjectLoader.EasySewablesList);
+        //    do
+        //    {
+        //        getPattern = RandomUtil.GetRandomObjectFromList(ObjectLoader.EasySewablesList);
+        //        if (!checkIfAdded.Contains(getPattern))
+        //        {
+        //            checkIfAdded.Add(getPattern);
+        //            break;
+        //        }
+        //    }
+        //    while (true);
 
-                if (!checkIfAdded.Contains(getPattern))
-                {
-                    checkIfAdded.Add(getPattern);
-                    break;
-                }
-            }
-            while (true);
+        //    if (mStoredPatternsKeySettingsList.Contains(getPattern))
+        //    {
+        //        try
+        //        {
+        //            for (int i = 0; i < ObjectLoader.sewableSettings.Count; i++)
+        //            {
+        //                mPatternInfoInit.resKeyPattern = getPattern;
+        //                // Move on if the reskey is invalid. 
+        //                if (mPatternInfoInit.resKeyPattern == ResourceKey.kInvalidResourceKey)
+        //                {
+        //                    continue;
+        //                }
 
-            if (mStoredPatternsKeySettingsList.Contains(getPattern))
-            {
-                try
-                {
-                    for (int i = 0; i < ObjectLoader.sewableSettings.Count; i++)
-                    {
-                        mPatternInfoInit.resKeyPattern = getPattern;
-                        // Move on if the reskey is invalid. 
-                        if (mPatternInfoInit.resKeyPattern == ResourceKey.kInvalidResourceKey)
-                        {
-                            continue;
-                        }
+        //                mPatternInfoInit.fabricsNeeded = ObjectLoader.sewableSettings[i].typeFabric;
+        //                mPatternInfoInit.IsMagic = ObjectLoader.sewableSettings[i].isMagicProject;
+        //                mPatternInfoInit.amountOfFabricToRemove = ObjectLoader.sewableSettings[i].amountRemoveFabric;
+        //                mPatternInfoInit.mSkilllevel = 0;
+        //                mPatternInfoInit.isClothing = ObjectLoader.sewableSettings[i].isClothing;
+        //                mPatternInfoInit.mClothingName = ObjectLoader.sewableSettings[i].clothingName;
+        //                mPatternInfoInit.mWasPatternGifted = false;
 
-                        mPatternInfoInit.fabricsNeeded = ObjectLoader.sewableSettings[i].typeFabric;
-                        mPatternInfoInit.IsMagic = ObjectLoader.sewableSettings[i].isMagicProject;
-                        mPatternInfoInit.amountOfFabricToRemove = ObjectLoader.sewableSettings[i].amountRemoveFabric;
-                        mPatternInfoInit.mSkilllevel = 0;
-                        mPatternInfoInit.isClothing = ObjectLoader.sewableSettings[i].isClothing;
-                        mPatternInfoInit.mClothingName = ObjectLoader.sewableSettings[i].clothingName;
-                        mPatternInfoInit.mWasPatternGifted = false;
+        //                if (mPatternInfoInit.isClothing)
+        //                {
+        //                    mPatternInfoInit.mSimOutfit = new CASPart(mPatternInfoInit.resKeyPattern);
+        //                }
 
-                        if (mPatternInfoInit.isClothing)
-                        {
-                            mPatternInfoInit.mSimOutfit = new CASPart(mPatternInfoInit.resKeyPattern);
-                        }
+        //                // Pattern OBJD key.
+        //                ResourceKey reskey1 = new ResourceKey(0x19D4F5930F26B2D8, 0x319E4F1D, 0x00000000);
+        //                Pattern.PatternObjectInitParams initData = new Pattern.PatternObjectInitParams(mPatternInfoInit.fabricsNeeded, mPatternInfoInit.IsMagic, mPatternInfoInit.amountOfFabricToRemove, mPatternInfoInit.mSkilllevel, mPatternInfoInit.resKeyPattern, mPatternInfoInit.isClothing, mPatternInfoInit.mSimOutfit, mPatternInfoInit.mClothingName, mPatternInfoInit.mWasPatternGifted);
+        //                Pattern pattern = (Pattern)GlobalFunctions.CreateObjectOutOfWorld(reskey1, null, initData);
 
-                        // Pattern OBJD key.
-                        ResourceKey reskey1 = new ResourceKey(0x19D4F5930F26B2D8, 0x319E4F1D, 0x00000000);
-                        Pattern.PatternObjectInitParams initData = new Pattern.PatternObjectInitParams(mPatternInfoInit.fabricsNeeded, mPatternInfoInit.IsMagic, mPatternInfoInit.amountOfFabricToRemove, mPatternInfoInit.mSkilllevel, mPatternInfoInit.resKeyPattern, mPatternInfoInit.isClothing, mPatternInfoInit.mSimOutfit, mPatternInfoInit.mClothingName, mPatternInfoInit.mWasPatternGifted);
-                        Pattern pattern = (Pattern)GlobalFunctions.CreateObjectOutOfWorld(reskey1, null, initData);
+        //                if (pattern.GetType() == typeof(FailureObject))
+        //                {
+        //                    return null;
+        //                }
+        //                // We always pick a random EASY EA resource (and creator stuff) but clothing will always have a hardness level of medium. So we don't need the clothing check!!
+        //                if (pattern != null)
+        //                {
+        //                    IGameObject getname = (GameObject)GlobalFunctions.CreateObjectOutOfWorld(mPatternInfoInit.resKeyPattern, null, initData);
+        //                    if (getname != null)
+        //                    {
+        //                        // Currently uses the pattern object's name. We need to concatinate the sewable's name here as well. Since EA never made a function to get the name direction from the resource key, we need to do this.
+        //                        mPatternInfoInit.Name = pattern.GetLocalizedName() + ": " + getname.GetLocalizedName();
+        //                        pattern.NameComponent.SetName(pattern.GetLocalizedName() + ": " + getname.GetLocalizedName());
+        //                        // Now we finally got the name and can destroy the object.
+        //                        getname.Destroy();
+        //                    }
+        //                    // Currently uses the pattern object's name. We need to concatinate the sewable's name here as well. Since EA never made a function to get the name direction from the resource key, we need to do this.
+        //                    mPatternInfoInit.Name = pattern.GetLocalizedName() + ": " + getname.GetLocalizedName();
+        //                    pattern.NameComponent.SetName(pattern.GetLocalizedName() + ": " + getname.GetLocalizedName());
+        //                    return pattern;
+        //                }
+        //                else if (pattern != null && mPatternInfoInit.isClothing)
+        //                {
+        //                    mPatternInfoInit.Name = mPatternInfoInit.mClothingName;
+        //                    pattern.NameComponent.SetName(mPatternInfoInit.Name);
 
-                        if (pattern.GetType() == typeof(FailureObject))
-                        {
-                            return null;
-                        }
-                        // We always pick a random EASY EA resource (and creator stuff) but clothing will always have a hardness level of medium. So we don't need the clothing check!!
-                        if (pattern != null)
-                        {
-                            IGameObject getname = (GameObject)GlobalFunctions.CreateObjectOutOfWorld(mPatternInfoInit.resKeyPattern, null, initData);
-                            if (getname != null)
-                            {
-                                // Currently uses the pattern object's name. We need to concatinate the sewable's name here as well. Since EA never made a function to get the name direction from the resource key, we need to do this.
-                                mPatternInfoInit.Name = pattern.GetLocalizedName() + ": " + getname.GetLocalizedName();
-                                pattern.NameComponent.SetName(pattern.GetLocalizedName() + ": " + getname.GetLocalizedName());
-                                // Now we finally got the name and can destroy the object.
-                                getname.Destroy();
-                            }
-                            // Currently uses the pattern object's name. We need to concatinate the sewable's name here as well. Since EA never made a function to get the name direction from the resource key, we need to do this.
-                            mPatternInfoInit.Name = pattern.GetLocalizedName() + ": " + getname.GetLocalizedName();
-                            pattern.NameComponent.SetName(pattern.GetLocalizedName() + ": " + getname.GetLocalizedName());
-                            return pattern;
-                        }
-                        else if (pattern != null && mPatternInfoInit.isClothing)
-                        {
-                            mPatternInfoInit.Name = mPatternInfoInit.mClothingName;
-                            pattern.NameComponent.SetName(mPatternInfoInit.Name);
-
-                            pattern.mPatternInfo = mPatternInfoInit;
-                            return pattern;
-                        }
-                        else
-                        {
-                            GlobalOptionsSewingTable.print("Lyralei's Sewing table: \n \n The pattern doesn't exist! Did you delete things from the sewing table .package? Else, contact Lyralei.");
-                            return null;
-                        }
-                    }
-                }
-                catch (Exception ex2)
-                {
-                    GlobalOptionsSewingTable.print("Lyralei's Sewing table: \n \n REPORT THIS TO LYRALEI: " + ex2.ToString());
-                    return null;
-                }
-            }
-            return null;
-        }
+        //                    pattern.mPatternInfo = mPatternInfoInit;
+        //                    return pattern;
+        //                }
+        //                else
+        //                {
+        //                    GlobalOptionsSewingTable.print("Lyralei's Sewing table: \n \n The pattern doesn't exist! Did you delete things from the sewing table .package? Else, contact Lyralei.");
+        //                    return null;
+        //                }
+        //            }
+        //        }
+        //        catch (Exception ex2)
+        //        {
+        //            GlobalOptionsSewingTable.print("Lyralei's Sewing table: \n \n REPORT THIS TO LYRALEI: " + ex2.ToString());
+        //            return null;
+        //        }
+        //    }
+        //    return null;
+        //}
 
         public static ResourceKey GetUnregisteredpattern(Sim actor, bool NeedsToCache)
         {
@@ -341,187 +337,104 @@ namespace Sims3.Gameplay.Objects.Lyralei
             {
                 getPattern = GetRandomKeyWithSKills(actor);
 
-                if (!SewingSkill.HasAlreadyDiscoveredThis(actorDesc, getPattern))
+                if (!SewingSkill.HasAlreadyDiscoveredThis(actorDesc.mSimDescriptionId, getPattern))
                 {
-                    break;
+                    return getPattern;
                 }
             }
             while (true);
-
-            return getPattern;
-
         }
 
-        public static void CreateCachedPatterns(Sim actor)
-        {
-            PatternInfo mPatternInfoInit = new PatternInfo();
-
-            foreach (ResourceKey reskey in mSavedCachedObjectsForLoopList)
-            {
-                try
-                {
-                    for (int i = 0; i < ObjectLoader.sewableSettings.Count; i++)
-                    {
-                        mPatternInfoInit.resKeyPattern = reskey;
-                        mPatternInfoInit.fabricsNeeded = ObjectLoader.sewableSettings[i].typeFabric;
-                        mPatternInfoInit.IsMagic = ObjectLoader.sewableSettings[i].isMagicProject;
-                        mPatternInfoInit.amountOfFabricToRemove = ObjectLoader.sewableSettings[i].amountRemoveFabric;
-                        mPatternInfoInit.mSkilllevel = 0;
-                        mPatternInfoInit.isClothing = ObjectLoader.sewableSettings[i].isClothing;
-                        mPatternInfoInit.mClothingName = ObjectLoader.sewableSettings[i].clothingName;
-                        mPatternInfoInit.mWasPatternGifted = false;
-                    }
-
-                    if (mPatternInfoInit.isClothing)
-                    {
-                        mPatternInfoInit.mSimOutfit = new CASPart(mPatternInfoInit.resKeyPattern);
-                    }
-
-                    // Move on if the reskey is invalid. 
-                    if (mPatternInfoInit.resKeyPattern == ResourceKey.kInvalidResourceKey)
-                    {
-                        continue;
-                    }
+        // Only use if we need to Discover patterns through the sewing table
+        //public static Pattern DiscoverPatternWithOnlySewingTable(GameObject target, Sim actor)
+        //{
+        //    PatternInfo mPatternInfoInit = new PatternInfo();
+        //    ResourceKey getPattern = GetUnregisteredpattern(actor, false);
+        //    SimDescription actorDesc = actor.SimDescription;
 
 
-                    // Pattern OBJD key.
-                    ResourceKey reskey1 = new ResourceKey(0x19D4F5930F26B2D8, 0x319E4F1D, 0x00000000);
-                    Pattern.PatternObjectInitParams initData = new Pattern.PatternObjectInitParams(mPatternInfoInit.fabricsNeeded, mPatternInfoInit.IsMagic, mPatternInfoInit.amountOfFabricToRemove, mPatternInfoInit.mSkilllevel, mPatternInfoInit.resKeyPattern, mPatternInfoInit.isClothing, mPatternInfoInit.mSimOutfit, mPatternInfoInit.mClothingName, mPatternInfoInit.mWasPatternGifted);
-                    Pattern pattern = (Pattern)GlobalFunctions.CreateObjectOutOfWorld(reskey1, null, initData);
-                    if (pattern.GetType() == typeof(FailureObject))
-                    {
-                        return;
-                    }
-                    if (pattern != null)
-                    {
-                        IGameObject getname = (GameObject)GlobalFunctions.CreateObjectOutOfWorld(mPatternInfoInit.resKeyPattern, null, initData);
-                        if (getname != null)
-                        {
-                            SimDescription desc = actor.SimDescription;
-                            SewingSkill.AddItemsToDiscoveredList(desc, mPatternInfoInit.resKeyPattern);
+        //    ResourceKey emptyRes = new ResourceKey(0uL, 0u, 0u);
+        //    if (getPattern != emptyRes)
+        //    {
 
-                            // Currently uses the pattern object's name. We need to concatinate the sewable's name here as well. Since EA never made a function to get the name direction from the resource key, we need to do this.
-                            mPatternInfoInit.Name = pattern.GetLocalizedName() + ": " + getname.GetLocalizedName();
-                            pattern.NameComponent.SetName(pattern.GetLocalizedName() + ": " + getname.GetLocalizedName());
-                            // Now we finally got the name and can destroy the object.
-                            getname.Destroy();
-                        }
-                        actor.Inventory.TryToAdd(pattern);
-                    }
-                    else if (pattern != null && mPatternInfoInit.isClothing)
-                    {
-                        mPatternInfoInit.Name = mPatternInfoInit.mClothingName;
-                        pattern.NameComponent.SetName(mPatternInfoInit.Name);
+        //        for (int i = 0; i < ObjectLoader.sewableSettings.Count; i++)
+        //        {
 
-                        pattern.mPatternInfo = mPatternInfoInit;
-                        actor.Inventory.TryToAdd(pattern);
-                        
-                    }
-                    else
-                    {
-                        GlobalOptionsSewingTable.print("Lyralei's Sewing table: \n \n The pattern doesn't exist! Did you delete things from the sewing table .package? Else, contact Lyralei.");
-                    }
-                }
-                catch (Exception ex2)
-                {
+        //            if (ObjectLoader.sewableSettings[i].key == getPattern)
+        //            {
+        //                try
+        //                {
+        //                    mPatternInfoInit.resKeyPattern = getPattern;
+        //                    mPatternInfoInit.fabricsNeeded = ObjectLoader.sewableSettings[i].typeFabric;
+        //                    mPatternInfoInit.IsMagic = ObjectLoader.sewableSettings[i].isMagicProject;
+        //                    mPatternInfoInit.amountOfFabricToRemove = ObjectLoader.sewableSettings[i].amountRemoveFabric;
+        //                    mPatternInfoInit.isClothing = ObjectLoader.sewableSettings[i].isClothing;
+        //                    mPatternInfoInit.mClothingName = ObjectLoader.sewableSettings[i].clothingName;
+        //                    mPatternInfoInit.mWasPatternGifted = false;
 
-                    GlobalOptionsSewingTable.print("Lyralei's Sewing table: \n \n REPORT THIS TO LYRALEI: " + ex2.ToString());
+        //                    if (mPatternInfoInit.isClothing)
+        //                    {
+        //                        mPatternInfoInit.mSimOutfit = new CASPart(mPatternInfoInit.resKeyPattern);
+        //                    }
 
-                }
+        //                    // Move on if the reskey is invalid. 
+        //                    if (mPatternInfoInit.resKeyPattern == ResourceKey.kInvalidResourceKey)
+        //                    {
+        //                        continue;
+        //                    }
 
-            }
+        //                    // Pattern OBJD key.
+        //                    ResourceKey reskey1 = new ResourceKey(0x19D4F5930F26B2D8, 0x319E4F1D, 0x00000000);
+        //                    Pattern.PatternObjectInitParams initData = new Pattern.PatternObjectInitParams(mPatternInfoInit.fabricsNeeded, mPatternInfoInit.IsMagic, mPatternInfoInit.amountOfFabricToRemove, mPatternInfoInit.mSkilllevel, mPatternInfoInit.resKeyPattern, mPatternInfoInit.isClothing, mPatternInfoInit.mSimOutfit, mPatternInfoInit.mClothingName, mPatternInfoInit.mWasPatternGifted);
+        //                    Pattern pattern = GlobalFunctions.CreateObject(reskey1, target.GetSlotPosition(Slot.ContainmentSlot_1), 0, target.GetForwardOfSlot(Slot.ContainmentSlot_1), null, initData) as Pattern;
 
-        }
+        //                    SetPatternMaterial(pattern, mPatternInfoInit.mSkilllevel, actor);
 
-        // Only use if it's an interaction. 
-        public static Pattern DiscoverPatternWithSkillsSewingTable(GameObject target, Sim actor)
-        {
-            PatternInfo mPatternInfoInit = new PatternInfo();
-            ResourceKey getPattern = GetUnregisteredpattern(actor, false);
-            SimDescription actorDesc = actor.SimDescription;
+        //                    if (pattern.GetType() == typeof(FailureObject))
+        //                    {
+        //                        continue;
+        //                    }
+        //                    if (pattern != null)
+        //                    {
+        //                        SimDescription desc = actor.SimDescription;
+        //                        SewingSkill.AddItemsToDiscoveredList(desc, mPatternInfoInit.resKeyPattern);
+        //                        IGameObject getname = (GameObject)GlobalFunctions.CreateObjectOutOfWorld(mPatternInfoInit.resKeyPattern, null, initData);
+        //                        // Currently uses the pattern object's name. We need to concatinate the sewable's name here as well. Since EA never made a function to get the name direction from the resource key, we need to do this.
+        //                        mPatternInfoInit.Name = pattern.GetLocalizedName() + ": " + getname.GetLocalizedName();
+        //                        pattern.NameComponent.SetName(pattern.GetLocalizedName() + ": " + getname.GetLocalizedName());
+        //                        // Now we finally got the name and can destroy the object. 
+        //                        getname.Destroy();
+        //                        //Set global
 
+        //                        //actor.ShowTNSIfSelectable("Ah yes! I just came up with a great project to sew and just drew the pattern for it! For the time being, I put it in the sewing table's inventory.", StyledNotification.NotificationStyle.kSimTalking);
+        //                        return pattern;
+        //                    }
+        //                    else if (pattern != null && mPatternInfoInit.isClothing)
+        //                    {
+        //                        mPatternInfoInit.Name = mPatternInfoInit.mClothingName;
+        //                        pattern.NameComponent.SetName(mPatternInfoInit.mClothingName);
 
-            ResourceKey emptyRes = new ResourceKey(0uL, 0u, 0u);
-            if (getPattern != emptyRes)
-            {
+        //                        pattern.mPatternInfo = mPatternInfoInit;
+        //                        actor.Inventory.TryToAdd(pattern);
+        //                        return pattern;
+        //                    }
+        //                    else
+        //                    {
+        //                        GlobalOptionsSewingTable.print("Lyralei's Sewing table: \n \n The pattern doesn't exist! Did you delete things from the sewing table .package? Else, contact Lyralei.");
+        //                        return null;
+        //                    }
+        //                }
+        //                catch (Exception ex2)
+        //                {
+        //                    GlobalOptionsSewingTable.print("Lyralei's Sewing table: \n \n REPORT THIS TO LYRALEI: " + ex2.ToString());
+        //                    return null;
+        //                }
+        //            }
+        //        }
+        //    }
+        //    return null;
+        //}
 
-                for (int i = 0; i < ObjectLoader.sewableSettings.Count; i++)
-                {
-
-                    if (ObjectLoader.sewableSettings[i].key == getPattern)
-                    {
-                        try
-                        {
-                            mPatternInfoInit.resKeyPattern = getPattern;
-                            mPatternInfoInit.fabricsNeeded = ObjectLoader.sewableSettings[i].typeFabric;
-                            mPatternInfoInit.IsMagic = ObjectLoader.sewableSettings[i].isMagicProject;
-                            mPatternInfoInit.amountOfFabricToRemove = ObjectLoader.sewableSettings[i].amountRemoveFabric;
-                            mPatternInfoInit.isClothing = ObjectLoader.sewableSettings[i].isClothing;
-                            mPatternInfoInit.mClothingName = ObjectLoader.sewableSettings[i].clothingName;
-                            mPatternInfoInit.mWasPatternGifted = false;
-
-                            if (mPatternInfoInit.isClothing)
-                            {
-                                mPatternInfoInit.mSimOutfit = new CASPart(mPatternInfoInit.resKeyPattern);
-                            }
-
-                            // Move on if the reskey is invalid. 
-                            if (mPatternInfoInit.resKeyPattern == ResourceKey.kInvalidResourceKey)
-                            {
-                                continue;
-                            }
-
-                            // Pattern OBJD key.
-                            ResourceKey reskey1 = new ResourceKey(0x19D4F5930F26B2D8, 0x319E4F1D, 0x00000000);
-                            Pattern.PatternObjectInitParams initData = new Pattern.PatternObjectInitParams(mPatternInfoInit.fabricsNeeded, mPatternInfoInit.IsMagic, mPatternInfoInit.amountOfFabricToRemove, mPatternInfoInit.mSkilllevel, mPatternInfoInit.resKeyPattern, mPatternInfoInit.isClothing, mPatternInfoInit.mSimOutfit, mPatternInfoInit.mClothingName, mPatternInfoInit.mWasPatternGifted);
-                            Pattern pattern = GlobalFunctions.CreateObject(reskey1, target.GetSlotPosition(Slot.ContainmentSlot_1), 0, target.GetForwardOfSlot(Slot.ContainmentSlot_1), null, initData) as Pattern;
-
-                            SetPatternMaterial(pattern, mPatternInfoInit.mSkilllevel, actor);
-
-                            if (pattern.GetType() == typeof(FailureObject))
-                            {
-                                continue;
-                            }
-                            if (pattern != null)
-                            {
-                                SimDescription desc = actor.SimDescription;
-                                SewingSkill.AddItemsToDiscoveredList(desc, mPatternInfoInit.resKeyPattern);
-                                IGameObject getname = (GameObject)GlobalFunctions.CreateObjectOutOfWorld(mPatternInfoInit.resKeyPattern, null, initData);
-                                // Currently uses the pattern object's name. We need to concatinate the sewable's name here as well. Since EA never made a function to get the name direction from the resource key, we need to do this.
-                                mPatternInfoInit.Name = pattern.GetLocalizedName() + ": " + getname.GetLocalizedName();
-                                pattern.NameComponent.SetName(pattern.GetLocalizedName() + ": " + getname.GetLocalizedName());
-                                // Now we finally got the name and can destroy the object. 
-                                getname.Destroy();
-                                //Set global
-
-                                //actor.ShowTNSIfSelectable("Ah yes! I just came up with a great project to sew and just drew the pattern for it! For the time being, I put it in the sewing table's inventory.", StyledNotification.NotificationStyle.kSimTalking);
-                                return pattern;
-                            }
-                            else if (pattern != null && mPatternInfoInit.isClothing)
-                            {
-                                mPatternInfoInit.Name = mPatternInfoInit.mClothingName;
-                                pattern.NameComponent.SetName(mPatternInfoInit.mClothingName);
-
-                                pattern.mPatternInfo = mPatternInfoInit;
-                                actor.Inventory.TryToAdd(pattern);
-                                return pattern;
-                            }
-                            else
-                            {
-                                GlobalOptionsSewingTable.print("Lyralei's Sewing table: \n \n The pattern doesn't exist! Did you delete things from the sewing table .package? Else, contact Lyralei.");
-                                return null;
-                            }
-                        }
-                        catch (Exception ex2)
-                        {
-                            GlobalOptionsSewingTable.print("Lyralei's Sewing table: \n \n REPORT THIS TO LYRALEI: " + ex2.ToString());
-                            return null;
-                        }
-                    }
-                }
-            }
-            return null;
-        }
         public static ResourceKey GetRandomKeyWithSKills(Sim actor)
         {
 
@@ -564,9 +477,59 @@ namespace Sims3.Gameplay.Objects.Lyralei
             return emptyRes;
         }
 
-        public static Pattern DiscoverPatternForGlobalObjects(Sim actor)
+        public static Pattern GetRandomClothingPattern(Sim sim)
         {
-            //int skillLevel					 			= actor.SkillManager.GetSkillLevel(SewingSkill.kSewingSkillGUID);
+            ResourceKey reskeyPattern;
+            SewingSkill sewingSkill = sim.SkillManager.AddElement(SewingSkill.kSewingSkillGUID) as SewingSkill;
+
+            do
+            {
+                reskeyPattern = RandomUtil.GetRandomObjectFromList(ObjectLoader.mStoredClothingPattern);
+
+                if (!SewingSkill.HasAlreadyDiscoveredThis(sim.mSimDescription.mSimDescriptionId, reskeyPattern))
+                {
+                    break;
+                }
+            }
+            while (true);
+
+            if(reskeyPattern != ResourceKey.kInvalidResourceKey)
+            {
+                PatternInfo mPatternInfoInit = new PatternInfo();
+                mPatternInfoInit.resKeyPattern = reskeyPattern;
+                ObjectLoader.sewableSetting sSetting = ObjectLoader.dictSettings[reskeyPattern];
+                mPatternInfoInit.fabricsNeeded = sSetting.typeFabric;
+                mPatternInfoInit.IsMagic = sSetting.isMagicProject;
+                mPatternInfoInit.amountOfFabricToRemove = sSetting.amountRemoveFabric;
+                mPatternInfoInit.isClothing = sSetting.isClothing;
+                mPatternInfoInit.mClothingName = sSetting.clothingName;
+                mPatternInfoInit.mWasPatternGifted = false;
+
+                if (mPatternInfoInit.isClothing)
+                {
+                    mPatternInfoInit.mSimOutfit = new CASPart(mPatternInfoInit.resKeyPattern);
+                }
+
+                ResourceKey reskey1 = new ResourceKey(0x19D4F5930F26B2D8, 0x319E4F1D, 0x00000000);
+                Pattern.PatternObjectInitParams initData = new Pattern.PatternObjectInitParams(mPatternInfoInit.fabricsNeeded, mPatternInfoInit.IsMagic, mPatternInfoInit.amountOfFabricToRemove, mPatternInfoInit.mSkilllevel, mPatternInfoInit.resKeyPattern, mPatternInfoInit.isClothing, mPatternInfoInit.mSimOutfit, mPatternInfoInit.mClothingName, mPatternInfoInit.mWasPatternGifted);
+                Pattern pattern = (Pattern)GlobalFunctions.CreateObjectOutOfWorld(reskey1, null, initData);
+
+                mPatternInfoInit.Name = mPatternInfoInit.mClothingName;
+                pattern.NameComponent.SetName(mPatternInfoInit.mClothingName);
+
+                pattern.mPatternInfo = mPatternInfoInit;
+                sim.Inventory.TryToAdd(pattern);
+                sewingSkill.AddPatternCount(1);
+
+                return pattern;
+            }
+            return null;
+
+        }
+
+        public static Pattern DiscoverPattern(Sim actor)
+        {
+            //int skillLevel = actor.SkillManager.GetSkillLevel(SewingSkill.kSewingSkillGUID);
             ResourceKey getPattern = GetUnregisteredpattern(actor, false);
             ResourceKey emptyRes = new ResourceKey(0uL, 0u, 0u);
             PatternInfo mPatternInfoInit = new PatternInfo();
@@ -575,8 +538,6 @@ namespace Sims3.Gameplay.Objects.Lyralei
             try
             {
                 ObjectLoader.sewableSetting sSetting = ObjectLoader.dictSettings[getPattern];
-                
-
 
                 mPatternInfoInit.resKeyPattern = getPattern;
                 mPatternInfoInit.fabricsNeeded = sSetting.typeFabric;
@@ -612,13 +573,13 @@ namespace Sims3.Gameplay.Objects.Lyralei
                         // Currently uses the pattern object's name. We need to concatinate the sewable's name here as well. Since EA never made a function to get the name direction from the resource key, we need to do this.
                         mPatternInfoInit.Name = pattern.GetLocalizedName() + ": " + getname.GetLocalizedName();
                         pattern.NameComponent.SetName(pattern.GetLocalizedName() + ": " + getname.GetLocalizedName());
-                        // Now we finally got the name and can destroy the object.
 
+                        // Now we finally got the name and can destroy the object.
                         getname.Destroy();
                     }
                     SimDescription desc = actor.SimDescription;
                     pattern.mPatternInfo = mPatternInfoInit;
-                    SewingSkill.AddItemsToDiscoveredList(desc, mPatternInfoInit.resKeyPattern);
+                    SewingSkill.AddItemsToDiscoveredList(desc.mSimDescriptionId, mPatternInfoInit.resKeyPattern);
 
                     actor.Inventory.TryToAdd(pattern);
                     sewingSkill.AddPatternCount(1);
@@ -631,6 +592,7 @@ namespace Sims3.Gameplay.Objects.Lyralei
 
                     pattern.mPatternInfo = mPatternInfoInit;
                     actor.Inventory.TryToAdd(pattern);
+                    sewingSkill.AddPatternCount(1);
 
                     return pattern;
                 }
@@ -645,7 +607,6 @@ namespace Sims3.Gameplay.Objects.Lyralei
                 GlobalOptionsSewingTable.print("Lyralei's Sewing table: \n \n REPORT THIS TO LYRALEI: " + ex2.ToString());
                 return null;
             }
-
         }
 
 
@@ -724,6 +685,7 @@ namespace Sims3.Gameplay.Objects.Lyralei
                     {
                         GlobalOptionsSewingTable.print("Lyralei's Sewing table: \n \n The pattern doesn't exist! Did you delete things from the sewing table .package? Else, contact Lyralei.");
                     }
+                    SewingSkill.AddItemsToDiscoveredList(actor.mSimDescription.mSimDescriptionId, mPatternInfoInit.resKeyPattern);
                 }
                 catch (Exception ex2)
                 {

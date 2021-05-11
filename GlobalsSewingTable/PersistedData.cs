@@ -2,39 +2,47 @@
 using Sims3.Gameplay.CAS;
 using Sims3.Gameplay.Objects.Lyralei;
 using Sims3.SimIFace;
+using Sims3.UI;
+using System;
 using System.Collections.Generic;
 
-[Persistable]
 public class PersistedData
 {
+
     [Persistable]
-    public Dictionary<SimDescription, List<ResourceKey>> mDiscoveredObjects;
+    public Dictionary<ulong, List<ResourceKey>> mDiscoveredObjectsNEWEST;
 
     [Persistable]
     public Dictionary<Sim, List<Pattern>> mGiftableClothing;
 
     [Persistable]
-    public Dictionary<SimDescription, bool> whoIsInPatternClub;
+    public Dictionary<ulong, bool> whoIsInPatternClub;
 
     public PersistedData()
     {
-        if (mDiscoveredObjects == null)
+        if (mDiscoveredObjectsNEWEST == null)
         {
-            mDiscoveredObjects = new Dictionary<SimDescription, List<ResourceKey>>();
+            mDiscoveredObjectsNEWEST = new Dictionary<ulong, List<ResourceKey>>();
         }
         if (whoIsInPatternClub == null)
         {
-            whoIsInPatternClub = new Dictionary<SimDescription, bool>();
+            whoIsInPatternClub = new Dictionary<ulong, bool>();
         }
         if (mGiftableClothing == null)
         {
             mGiftableClothing = new Dictionary<Sim, List<Pattern>>();
         }
+        
+    }
+
+    public static void print(string text)
+    {
+        SimpleMessageDialog.Show("Lyralei's Sewing Table:", text);
     }
 
     public void Cleanup()
     {
-        mDiscoveredObjects = null;
+        mDiscoveredObjectsNEWEST = null;
         whoIsInPatternClub = null;
         mGiftableClothing = null;
     }
